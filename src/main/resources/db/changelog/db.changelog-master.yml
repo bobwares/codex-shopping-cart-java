@@ -1,0 +1,21 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: db.changelog
+#  * File: db.changelog-master.yml
+#  * Version: 0.1.0
+#  * Turns: 1
+#  * Author: Codex Agent
+#  * Date: 2025-10-01T19:32:32Z
+#  * Exports: Liquibase changelog
+#  * Description: Registers SQL-based Liquibase change sets for the Shopping Cart domain schema.
+#  */
+databaseChangeLog:
+  - changeSet:
+      id: 01-create-shopping-cart-tables
+      author: codex-agent
+      changes:
+        - sqlFile:
+            path: classpath:db/changelog/sql/01_shopping_cart_tables.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            endDelimiter: ;

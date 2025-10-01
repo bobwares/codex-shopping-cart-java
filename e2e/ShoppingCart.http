@@ -1,0 +1,78 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: e2e
+#  * File: ShoppingCart.http
+#  * Version: 0.1.0
+#  * Turns: 1
+#  * Author: Codex Agent
+#  * Date: 2025-10-01T19:32:32Z
+#  * Exports: HTTP E2E script
+#  * Description: Demonstrates create, read, update, and delete requests for shopping carts.
+#  */
+@host = http://localhost:8080
+
+### Create cart
+POST {{host}}/api/shopping-carts
+Content-Type: application/json
+
+{
+  "userId": "11111111-2222-3333-4444-555555555555",
+  "subtotal": 120.00,
+  "tax": 9.00,
+  "shipping": 5.00,
+  "total": 134.00,
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "SKU-2001",
+      "name": "Wireless Headphones",
+      "quantity": 2,
+      "unitPrice": 60.00,
+      "totalPrice": 120.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": []
+}
+
+> {% client.global.set("cartId", response.body.id); %}
+
+### Get cart
+GET {{host}}/api/shopping-carts/{{cartId}}
+
+### Update cart
+PUT {{host}}/api/shopping-carts/{{cartId}}
+Content-Type: application/json
+
+{
+  "userId": "11111111-2222-3333-4444-555555555555",
+  "subtotal": 125.00,
+  "tax": 10.00,
+  "shipping": 5.00,
+  "total": 140.00,
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "SKU-2001",
+      "name": "Wireless Headphones",
+      "quantity": 2,
+      "unitPrice": 60.00,
+      "totalPrice": 120.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": [
+    {
+      "code": "WELCOME10",
+      "amount": 10.00
+    }
+  ]
+}
+
+### Delete cart
+DELETE {{host}}/api/shopping-carts/{{cartId}}
+
+### Verify deletion
+GET {{host}}/api/shopping-carts/{{cartId}}
+
+> {% client.assert(response.status === 404); %}

@@ -1,0 +1,63 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: resources
+#  * File: application.yml
+#  * Version: 0.1.0
+#  * Turns: 1
+#  * Author: Codex Agent
+#  * Date: 2025-10-01T19:32:32Z
+#  * Exports: spring configuration
+#  * Description: Configures Spring Boot, datasource, Liquibase, and OpenAPI settings for the Shopping Cart API.
+#  */
+spring:
+  application:
+    name: ${APP_NAME}
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+        default_schema: ${DB_SCHEMA:shopping_cart}
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+    enabled: true
+    contexts: ${LIQUIBASE_CONTEXTS:}
+    default-schema: ${DB_SCHEMA:shopping_cart}
+    drop-first: false
+    parameters:
+      appName: ${APP_NAME}
+server:
+  port: ${APP_PORT}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+app:
+  app-name: ${APP_NAME}
+  app-port: ${APP_PORT}
+  db-host: ${DB_HOST}
+  db-port: ${DB_PORT}
+  db-name: ${DB_NAME}
+  db-username: ${DB_USERNAME}
+  db-password: ${DB_PASSWORD}
+  db-schema: ${DB_SCHEMA:shopping_cart}

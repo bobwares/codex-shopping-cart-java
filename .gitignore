@@ -1,122 +1,40 @@
-### IntelliJ IDEA / JetBrains ###
-.idea/
-*.iml
-out/
-*.ipr
+.env*
+/ai/project-parser/output
+
+.DS_Store
+/ai/output
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
 *.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
 ### VS Code ###
 .vscode/
-.history/
-*.code-workspace
-
-### General ###
 .DS_Store
-Thumbs.db
-*.log
-*.tmp
-*.swp
-*.swo
-*.bak
-*.orig
-*.rej
-*.seed
-*.pid
-*.seed
-*.gz
-*.tgz
-
-### Node.js ###
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-.pnpm-debug.log*
-.env
-.env.local
-.env.*.local
-.cache/
-dist/
-coverage/
-.next/
-.nuxt/
-out/
-
-### Python ###
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pyc
-*.pdb
-*.egg-info/
-.eggs/
-.mypy_cache/
-.pytest_cache/
-.tox/
-.venv/
-venv/
-env/
-ENV/
-
-### Java ###
-target/
-*.class
-*.jar
-*.war
-*.ear
-*.class
-*.log
-*.hprof
-*.hs_err_pid*
-
-### OS / Editor Artifacts ###
-*.bak
-*.tmp
-*.swp
-*.swo
-*~
-*.lock
-*.lnk
-
-### Package Managers ###
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-poetry.lock
-Pipfile.lock
-
-### Build Systems ###
-.gradle/
-build/
-.mvn/
-.mvnw
-.mvnw.cmd
-
-### Docker ###
-*.pid
-*.seed
-.docker/
-docker-compose.override.yml
-
-### Misc ###
-# Logs and Reports
-logs/
-*.log
-*.out
-*.err
-
-# Coverage
-lcov.info
-
-# IDE crash reports
-hs_err_pid*
-
-# Backup files
-*~
-
-# Ignore local testing/experiment files
-tmp/
-scratch/
-sandbox/
+**/.DS_Store

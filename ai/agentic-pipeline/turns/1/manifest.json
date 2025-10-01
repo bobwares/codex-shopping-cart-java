@@ -1,0 +1,35 @@
+{
+  "turnId": 1,
+  "timestampUtc": "2025-10-01T19:32:32Z",
+  "task": "Initialize Spring Boot Shopping Cart API",
+  "changes": {
+    "added": [
+      "pom.xml",
+      ".gitignore",
+      ".env",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/ShoppingCartApiApplication.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/config/AppProperties.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/domain/ShoppingCart.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/domain/item/ShoppingCartItem.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/domain/discount/ShoppingCartDiscount.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/repository/ShoppingCartRepository.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/service/ShoppingCartService.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/api/ShoppingCartDto.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/api/ShoppingCartController.java",
+      "src/main/java/com/bobwares/shoppingcart/shoppingcart/web/RestExceptionHandler.java",
+      "src/main/resources/application.yml",
+      "src/main/resources/db/changelog/db.changelog-master.yml",
+      "src/main/resources/db/changelog/sql/01_shopping_cart_tables.sql",
+      "db/migrations/01_shopping_cart_tables.sql",
+      "db/scripts/shopping_cart_test_data.sql",
+      "db/README.md",
+      "src/test/java/com/bobwares/shoppingcart/shoppingcart/service/ShoppingCartServiceTests.java",
+      "src/test/java/com/bobwares/shoppingcart/shoppingcart/web/ShoppingCartControllerIT.java",
+      "e2e/ShoppingCart.http",
+      "ai/agentic-pipeline/turns/1/changelog.md",
+      "ai/agentic-pipeline/turns/1/adr.md",
+      "ai/agentic-pipeline/turns/1/session_context_values.md"
+    ],
+    "modified": []
+  }
+}

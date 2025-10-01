@@ -10,6 +10,7 @@
 #  * Description: Demonstrates create, read, update, and delete requests for shopping carts.
 #  */
 @host = http://localhost:8080
+@cartId = 00000000-0000-0000-0000-000000000001
 
 ### Create cart
 POST {{host}}/api/shopping-carts

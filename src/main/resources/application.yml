@@ -13,27 +13,21 @@ spring:
   application:
     name: ${APP_NAME}
   datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
-    hibernate:
-      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         show_sql: false
-        default_schema: ${DB_SCHEMA:shopping_cart}
+        default_schema: ${DATABASE_SCHEMA}
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yml
     enabled: true
-    contexts: ${LIQUIBASE_CONTEXTS:}
-    default-schema: ${DB_SCHEMA:shopping_cart}
-    drop-first: false
-    parameters:
-      appName: ${APP_NAME}
 server:
   port: ${APP_PORT}
 management:
@@ -55,9 +49,9 @@ springdoc:
 app:
   app-name: ${APP_NAME}
   app-port: ${APP_PORT}
-  db-host: ${DB_HOST}
-  db-port: ${DB_PORT}
-  db-name: ${DB_NAME}
-  db-username: ${DB_USERNAME}
-  db-password: ${DB_PASSWORD}
-  db-schema: ${DB_SCHEMA:shopping_cart}
+  db-host: ${DATABASE_HOST}
+  db-port: ${DATABASE_PORT}
+  db-name: ${DATABASE_NAME}
+  db-username: ${DATABASE_USERNAME}
+  db-password: ${DATABASE_PASSWORD}
+  db-schema: ${DATABASE_SCHEMA}

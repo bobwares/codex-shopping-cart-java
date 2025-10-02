@@ -1,0 +1,62 @@
+# App: Shopping Cart API
+# Package: .github.workflows
+# File: release.yml
+# Version: 0.1.0
+# Turns: [1]
+# Author: Codex Agent <agent@local>
+# Date: 2025-10-02T10:47:14Z
+# Exports: Release workflow
+# Description: Builds and publishes release artifacts on semantic version tags.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build (reproducible)
+        run: |
+          ./mvnw -B -DskipTests clean package
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release
+          cp -v target/*.jar release/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-jars
+          path: release/*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            release/*.jar

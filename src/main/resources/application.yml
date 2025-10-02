@@ -1,0 +1,56 @@
+# App: Shopping Cart API
+# Package: resources
+# File: application.yml
+# Version: 0.1.0
+# Turns: [1]
+# Author: Codex Agent <agent@local>
+# Date: 2025-10-02T10:47:14Z
+# Exports: Spring Boot configuration
+# Description: Declares the primary runtime configuration for the Shopping
+#              Cart API using environment-driven properties and Liquibase
+#              migrations.
+
+spring:
+  application:
+    name: ${APP_NAME}
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.time_zone: UTC
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+  main:
+    allow-bean-definition-overriding: false
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+server:
+  port: ${APP_PORT}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  observations:
+    key-values:
+      application: ${APP_NAME}
+app:
+  name: ${APP_NAME}
+  default-tax-rate: ${APP_DEFAULT_TAX_RATE}
+  default-shipping-cost: ${APP_DEFAULT_SHIPPING_COST}
+  supported-currencies: ${APP_SUPPORTED_CURRENCIES}

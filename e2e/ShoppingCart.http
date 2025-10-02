@@ -1,0 +1,101 @@
+# App: Shopping Cart API
+# Package: e2e
+# File: ShoppingCart.http
+# Version: 0.1.0
+# Turns: [1]
+# Author: Codex Agent <agent@local>
+# Date: 2025-10-02T10:47:14Z
+# Exports: Shopping cart HTTP scenarios
+# Description: Exercises the shopping cart API across create, read, update,
+#              delete operations using REST Client syntax.
+
+@host = http://localhost:{{PORT:8080}}
+
+### Create shopping cart
+POST {{host}}/api/carts
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "7c2d1e4d-3f73-4f6a-8fd5-2decbba7c9f2",
+  "currency": "USD",
+  "tax": 12.50,
+  "shipping": 5.00,
+  "items": [
+    {
+      "productId": "SKU-5001",
+      "name": "Premium Headphones",
+      "quantity": 1,
+      "unitPrice": 120.00,
+      "currency": "USD"
+    },
+    {
+      "productId": "SKU-5002",
+      "name": "Desk Microphone",
+      "quantity": 1,
+      "unitPrice": 55.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": [
+    {
+      "code": "WELCOME",
+      "amount": 10.00
+    }
+  ]
+}
+
+> {% client.global.set("cartId", response.body.id); %}
+
+### Fetch the created cart
+GET {{host}}/api/carts/{{cartId}}
+Accept: application/json
+
+### Update the cart with adjusted shipping cost
+PUT {{host}}/api/carts/{{cartId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "7c2d1e4d-3f73-4f6a-8fd5-2decbba7c9f2",
+  "currency": "USD",
+  "tax": 12.50,
+  "shipping": 7.00,
+  "items": [
+    {
+      "productId": "SKU-5001",
+      "name": "Premium Headphones",
+      "quantity": 1,
+      "unitPrice": 120.00,
+      "currency": "USD"
+    },
+    {
+      "productId": "SKU-5002",
+      "name": "Desk Microphone",
+      "quantity": 2,
+      "unitPrice": 55.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": [
+    {
+      "code": "WELCOME",
+      "amount": 10.00
+    },
+    {
+      "code": "LOYAL",
+      "amount": 5.00
+    }
+  ]
+}
+
+### Delete the cart
+DELETE {{host}}/api/carts/{{cartId}}
+
+### Ensure the cart is removed
+GET {{host}}/api/carts/{{cartId}}
+Accept: application/json
+
+> {% client.test("Expect 404 after deletion", function() {
+    client.assert(response.status === 404, "Expected HTTP 404 when cart is missing");
+}); %}

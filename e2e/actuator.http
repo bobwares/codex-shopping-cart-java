@@ -1,0 +1,11 @@
+### Health check
+GET http://localhost:{{APP_PORT}}/actuator/health
+Accept: application/json
+
+### Info endpoint
+GET http://localhost:{{APP_PORT}}/actuator/info
+Accept: application/json
+
+### Meta environment
+GET http://localhost:{{APP_PORT}}/meta/env
+Accept: application/json

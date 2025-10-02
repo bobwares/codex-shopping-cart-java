@@ -1,0 +1,118 @@
+# App: Shopping Cart API
+# Package: .github.workflows
+# File: ci.yml
+# Version: 0.1.0
+# Turns: [1]
+# Author: Codex Agent <agent@local>
+# Date: 2025-10-02T10:47:14Z
+# Exports: CI workflow
+# Description: Continuous integration pipeline for build, tests, and configuration validation.
+
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "pom.xml"
+      - "src/**"
+      - ".mvn/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "pom.xml"
+      - "src/**"
+      - ".mvn/**"
+      - ".github/workflows/ci.yml"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & Test (Java 21, Maven)
+    runs-on: ubuntu-latest
+
+    env:
+      MAVEN_OPTS: "-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss"
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Maven Wrapper
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Cache Maven Repository
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+          key: m2-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            m2-${{ runner.os }}-
+
+      - name: Verify application.yml contract
+        run: |
+          set -euo pipefail
+          APP_YML="src/main/resources/application.yml"
+          test -f "$APP_YML" || { echo "Missing $APP_YML"; exit 1; }
+
+          grep -qE 'spring:\s*$' "$APP_YML"
+          grep -qE 'application:\s*$' "$APP_YML"
+          grep -qE 'name:\s*\$\{APP_NAME\}' "$APP_YML"
+          grep -qE 'datasource:\s*$' "$APP_YML"
+          grep -qE 'url:\s*jdbc:postgresql://\$\{DATABASE_HOST\}:\$\{DATABASE_PORT\}/\$\{DATABASE_NAME\}' "$APP_YML" || {
+            echo "Datasource URL must reference DATABASE_HOST/PORT/NAME"; exit 1; }
+          grep -qE 'username:\s*\$\{DATABASE_USERNAME\}' "$APP_YML"
+          grep -qE 'password:\s*\$\{DATABASE_PASSWORD\}' "$APP_YML"
+          grep -qE 'liquibase:\s*$' "$APP_YML"
+          grep -qE 'change-log:\s*classpath:db/changelog/db.changelog-master.yml' "$APP_YML"
+          grep -qE '^server:\s*$' "$APP_YML"
+          grep -qE 'port:\s*\$\{APP_PORT\}' "$APP_YML"
+          grep -qE '^management:\s*$' "$APP_YML"
+          grep -qE '^springdoc:\s*$' "$APP_YML"
+
+          if grep -qE '\$\{[A-Z0-9_]+:-?[^}]+\}' "$APP_YML"; then
+            echo "application.yml must not contain default fallbacks in env substitutions"; exit 1;
+          fi
+
+      - name: Liquibase changelog validation (dry)
+        run: |
+          ./mvnw -B -DskipTests -Dliquibase.hub.mode=off liquibase:validate
+
+      - name: Build & Test (unit + integration)
+        run: |
+          ./mvnw -B -DskipTests=false clean verify
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
+            **/target/site/jacoco/**
+          if-no-files-found: ignore
+
+      - name: Upload JARs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jars
+          path: |
+            target/*.jar
+          if-no-files-found: error

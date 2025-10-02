@@ -33,7 +33,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .pnpm-debug.log*
-.env
 .env.local
 .env.*.local
 .cache/
@@ -90,9 +89,6 @@ Pipfile.lock
 ### Build Systems ###
 .gradle/
 build/
-.mvn/
-.mvnw
-.mvnw.cmd
 
 ### Docker ###
 *.pid

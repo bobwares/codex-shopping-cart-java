@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-initial-placeholder
+      author: gpt-5-codex
+      comment: "Placeholder change set to satisfy Liquibase validation during initial scaffolding."
+      changes:
+        - tagDatabase:
+            tag: initial-placeholder

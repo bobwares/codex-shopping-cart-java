@@ -1,0 +1,1 @@
+Initialized Spring Boot project scaffold, generated configuration, and prepared agentic pipeline artifacts for turn tracking.

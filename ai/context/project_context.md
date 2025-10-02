@@ -14,6 +14,15 @@
 
 - Author: Bobwares ([bobwares@outlook.com](mailto:bobwares@outlook.com)) 
 
+
+## Maven
+
+- groupId: com.bobwares
+- artifactId: shoppingcart
+- name: {{project.name}}
+- description: {{project. short description}}
+
+
 ## domain
 - Domain Object:  ShoppingCart
 - REST API Request Schema:  load project_root/ai/context/schemas/shopping-cart.schema.json

@@ -1,0 +1,59 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: com.bobwares.shoppingcart.config
+#  * File: application.yml
+#  * Version: 0.2.0
+#  * Turns: 1, 2
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:40:07Z
+#  * Exports: Spring Boot application configuration
+#  * Description: Configures application name, datasource, JPA, Liquibase, management, and Springdoc defaults.
+#  */
+
+spring:
+  application:
+    name: ${APP_NAME:shopping-cart-api}
+  datasource:
+    url: jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${DATABASE_NAME:shoppingcart}
+    username: ${DATABASE_USERNAME:shoppingcart}
+    password: ${DATABASE_PASSWORD:shoppingcart}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: ${DATABASE_SCHEMA:shopping_cart}
+        format_sql: true
+        jdbc.time_zone: UTC
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yml
+    enabled: true
+  main:
+    allow-bean-definition-overriding: false
+springdoc:
+  api-docs:
+    path: /api/openapi.json
+  swagger-ui:
+    path: /api/docs
+
+server:
+  port: ${APP_PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  observations:
+    key-values:
+      application: ${APP_NAME}
+app:
+  name: ${APP_NAME:shopping-cart-api}
+  default-tax-rate: ${APP_DEFAULT_TAX_RATE:0.0}
+  default-shipping-cost: ${APP_DEFAULT_SHIPPING_COST:0.0}
+  supported-currencies: ${APP_SUPPORTED_CURRENCIES:USD}

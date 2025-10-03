@@ -1,0 +1,2668 @@
+diff --git a/README.md b/README.md
+index 6dbbee4..32ba9e8 100644
+--- a/README.md
++++ b/README.md
+@@ -1,2 +1,63 @@
+-# agentic-ai-pipeline-target-project-template
+-Template for new projects that will be created by the Agentic AI Pipeline Coding Agent.
++<!--
++/**
++ * App: Shopping Cart API
++ * Package: documentation
++ * File: README.md
++ * Version: 0.2.0
++ * Turns: 1, 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: Project overview documentation
++ * Description: Describes the Shopping Cart API project, local development workflow, and supporting tooling.
++ */
++-->
++# Shopping Cart API
++
++The Shopping Cart API is a Spring Boot service that exposes RESTful endpoints for managing shopping carts, including items, pricing, and discount information.
++
++## Local Development
++
++### Prerequisites
++- Java 21
++- Maven 3.9+
++- Docker Desktop or Docker Engine 24+
++
++### Environment Variables
++Create a `.env` file in the project root with the following values before starting local services:
++
++```
++APP_NAME=shopping-cart-api
++APP_PORT=8080
++DATABASE_HOST=localhost
++DATABASE_PORT=5432
++DATABASE_NAME=shopping_cart
++DATABASE_USERNAME=shopping_cart
++DATABASE_PASSWORD=shopping_cart
++DATABASE_SCHEMA=public
++```
++
++### Database (Docker Compose)
++Use the provided Compose definition to launch PostgreSQL locally:
++
++```
++docker compose up -d postgres
++```
++
++The container exposes PostgreSQL on `localhost:${DATABASE_PORT}` and mounts `db/init` for optional initialization scripts. Use `docker compose down -v` to remove volumes when resetting the environment.
++
++### Application
++
++Run the application with Maven once the database is available:
++
++```
++mvn spring-boot:run
++```
++
++### Testing
++
++```
++mvn test
++```
++
++## API Documentation
++Springdoc OpenAPI exposes API documentation at `http://localhost:${APP_PORT}/swagger-ui.html` when the application is running.
+diff --git a/ai/agentic-pipeline/turns/2/adr.md b/ai/agentic-pipeline/turns/2/adr.md
+new file mode 100644
+index 0000000..f7d6cda
+--- /dev/null
++++ b/ai/agentic-pipeline/turns/2/adr.md
+@@ -0,0 +1,28 @@
++# Architecture Decision Record
++
++Model Shopping Cart Aggregate with Explicit Child Entities and SQL Migration
++
++**Turn**: 2
++
++**Status**: Accepted
++
++**Date**: 2025-10-03 - 00:25
++
++**Context**
++The Shopping Cart domain schema includes nested arrays for items and discounts along with monetary totals. We needed to persist this aggregate to PostgreSQL, expose CRUD endpoints, and keep schema management aligned with the Liquibase-driven workflow defined in Turn 1.
++
++**Options Considered**
++- Represent child collections as JSON columns and manage them application-side.
++- Create separate normalized tables for items and discounts with JPA entities mapped via relations.
++- Delay schema integration and rely on in-memory persistence until later turns.
++
++**Decision**
++Create normalized tables (`shopping_cart_item`, `shopping_cart_discount`) with foreign-key relationships to the cart table and map them to dedicated JPA entities. Maintain a hand-authored SQL migration located under `db/migrations` and reference it from the Liquibase changelog to preserve the project's SQL-first pattern.
++
++**Result**
++Added `ShoppingCart`, `ShoppingCartItem`, and `ShoppingCartDiscount` entities with cascading relationships, plus repository/service/controller code to manage CRUD flows. Generated `01_shopping_cart_tables.sql` and wired it into Liquibase for repeatable database setup.
++
++**Consequences**
++- Ensures referential integrity and query flexibility at the cost of additional mapping code.
++- Liquibase now executes the SQL migration automatically, enabling consistent environments but requiring future schema changes to be reflected in SQL files.
++- DTO mapping logic must keep child collections synchronized during updates, which increases service complexity but keeps API payloads intuitive.
+diff --git a/ai/agentic-pipeline/turns/2/changelog.md b/ai/agentic-pipeline/turns/2/changelog.md
+new file mode 100644
+index 0000000..960b023
+--- /dev/null
++++ b/ai/agentic-pipeline/turns/2/changelog.md
+@@ -0,0 +1,18 @@
++# Turn: 2 – 2025-10-03 - 00:25 UTC
++
++## Prompt
++
++execute turn 2
++
++#### Task
++Implement turn 2 of the spring-boot-mvc-jpa-postgresql pattern: Docker Compose setup, normalized schema, test data, persistence layer, and REST service for the Shopping Cart domain.
++
++#### Changes
++- Added Docker Compose definition, database documentation, and Liquibase change set for the shopping cart schema.
++- Generated normalized SQL migration and idempotent seed script derived from the persisted data schema.
++- Implemented shopping cart entities, repository, service, REST controller, DTOs, and exception handler with metadata headers.
++- Added CRUD HTTP scenario along with unit and integration tests leveraging Mockito and Testcontainers.
++
++#### Tools Executed
++- bash shell commands for file creation and editing.
++- mvn test
+diff --git a/ai/agentic-pipeline/turns/2/diff.patch b/ai/agentic-pipeline/turns/2/diff.patch
+new file mode 100644
+index 0000000..0d10d05
+--- /dev/null
++++ b/ai/agentic-pipeline/turns/2/diff.patch
+@@ -0,0 +1,215 @@
++diff --git a/README.md b/README.md
++index 6dbbee4..32ba9e8 100644
++--- a/README.md
+++++ b/README.md
++@@ -1,2 +1,63 @@
++-# agentic-ai-pipeline-target-project-template
++-Template for new projects that will be created by the Agentic AI Pipeline Coding Agent.
+++<!--
+++/**
+++ * App: Shopping Cart API
+++ * Package: documentation
+++ * File: README.md
+++ * Version: 0.2.0
+++ * Turns: 1, 2
+++ * Author: gpt-5-codex
+++ * Date: 2025-10-03T00:25:40Z
+++ * Exports: Project overview documentation
+++ * Description: Describes the Shopping Cart API project, local development workflow, and supporting tooling.
+++ */
+++-->
+++# Shopping Cart API
+++
+++The Shopping Cart API is a Spring Boot service that exposes RESTful endpoints for managing shopping carts, including items, pricing, and discount information.
+++
+++## Local Development
+++
+++### Prerequisites
+++- Java 21
+++- Maven 3.9+
+++- Docker Desktop or Docker Engine 24+
+++
+++### Environment Variables
+++Create a `.env` file in the project root with the following values before starting local services:
+++
+++```
+++APP_NAME=shopping-cart-api
+++APP_PORT=8080
+++DATABASE_HOST=localhost
+++DATABASE_PORT=5432
+++DATABASE_NAME=shopping_cart
+++DATABASE_USERNAME=shopping_cart
+++DATABASE_PASSWORD=shopping_cart
+++DATABASE_SCHEMA=public
+++```
+++
+++### Database (Docker Compose)
+++Use the provided Compose definition to launch PostgreSQL locally:
+++
+++```
+++docker compose up -d postgres
+++```
+++
+++The container exposes PostgreSQL on `localhost:${DATABASE_PORT}` and mounts `db/init` for optional initialization scripts. Use `docker compose down -v` to remove volumes when resetting the environment.
+++
+++### Application
+++
+++Run the application with Maven once the database is available:
+++
+++```
+++mvn spring-boot:run
+++```
+++
+++### Testing
+++
+++```
+++mvn test
+++```
+++
+++## API Documentation
+++Springdoc OpenAPI exposes API documentation at `http://localhost:${APP_PORT}/swagger-ui.html` when the application is running.
++diff --git a/ai/agentic-pipeline/turns/index.csv b/ai/agentic-pipeline/turns/index.csv
++index 28c3f87..46c93f2 100644
++--- a/ai/agentic-pipeline/turns/index.csv
+++++ b/ai/agentic-pipeline/turns/index.csv
++@@ -1,2 +1,3 @@
++ turnId,timestampUtc,task,branch,tag,headAfter,testsPassed,testsFailed,coverageDeltaPct
++ 1,2025-10-02T23:02:16Z,TASK 01 - Initialize Project,feat/initialize-project-turn1,turn/1,HEAD,1,0,0.0
+++2,2025-10-03T00:25:40Z,execute turn 2,feat/shopping-cart-turn2,turn/2,HEAD,0,0,0.0
++diff --git a/changelog.md b/changelog.md
++index 789f103..d10879a 100644
++--- a/changelog.md
+++++ b/changelog.md
++@@ -4,3 +4,9 @@
++ - Initialized Spring Boot project scaffold with Maven configuration, application properties, and baseline controller/test.
++ - Added supporting configuration files (.gitignore, README-config.md, Liquibase changelog, actuator HTTP requests).
++ - Recorded agentic pipeline metadata for ongoing turn tracking.
+++
+++## Turn 2 – 2025-10-03
+++- Added Docker Compose support, database documentation, and Liquibase integration for the shopping cart schema.
+++- Modeled shopping cart domain entities with Spring Data JPA, repository, service, REST controller, and error handling.
+++- Implemented SQL migrations, seed data scripts, and end-to-end HTTP workflow covering CRUD scenarios.
+++- Created unit and integration tests using Mockito and Testcontainers to validate persistence and API behavior.
++diff --git a/pom.xml b/pom.xml
++index e5ebfdc..79d98b4 100644
++--- a/pom.xml
+++++ b/pom.xml
++@@ -36,6 +36,10 @@
++       <groupId>org.springframework.boot</groupId>
++       <artifactId>spring-boot-starter-web</artifactId>
++     </dependency>
+++    <dependency>
+++      <groupId>org.springframework.boot</groupId>
+++      <artifactId>spring-boot-starter-data-jpa</artifactId>
+++    </dependency>
++     <dependency>
++       <groupId>org.springframework.boot</groupId>
++       <artifactId>spring-boot-starter-validation</artifactId>
++@@ -81,6 +85,26 @@
++       <artifactId>spring-boot-starter-test</artifactId>
++       <scope>test</scope>
++     </dependency>
+++    <dependency>
+++      <groupId>com.h2database</groupId>
+++      <artifactId>h2</artifactId>
+++      <scope>test</scope>
+++    </dependency>
+++    <dependency>
+++      <groupId>org.springframework.boot</groupId>
+++      <artifactId>spring-boot-testcontainers</artifactId>
+++      <scope>test</scope>
+++    </dependency>
+++    <dependency>
+++      <groupId>org.testcontainers</groupId>
+++      <artifactId>junit-jupiter</artifactId>
+++      <scope>test</scope>
+++    </dependency>
+++    <dependency>
+++      <groupId>org.testcontainers</groupId>
+++      <artifactId>postgresql</artifactId>
+++      <scope>test</scope>
+++    </dependency>
++   </dependencies>
++ 
++   <build>
++diff --git a/src/main/resources/application.yml b/src/main/resources/application.yml
++index 7097e1f..acfcd85 100644
++--- a/src/main/resources/application.yml
+++++ b/src/main/resources/application.yml
++@@ -12,6 +12,7 @@ spring:
++     open-in-view: false
++     properties:
++       hibernate:
+++        default_schema: ${DATABASE_SCHEMA:shopping_cart}
++         format_sql: true
++         jdbc.time_zone: UTC
++   liquibase:
++diff --git a/src/main/resources/db/changelog/db.changelog-master.yml b/src/main/resources/db/changelog/db.changelog-master.yml
++index 686e833..ff3d65d 100644
++--- a/src/main/resources/db/changelog/db.changelog-master.yml
+++++ b/src/main/resources/db/changelog/db.changelog-master.yml
++@@ -1,3 +1,14 @@
+++# /**
+++#  * App: Shopping Cart API
+++#  * Package: db.changelog
+++#  * File: db.changelog-master.yml
+++#  * Version: 0.2.0
+++#  * Turns: 1, 2
+++#  * Author: gpt-5-codex
+++#  * Date: 2025-10-03T00:25:40Z
+++#  * Exports: Liquibase changelog
+++#  * Description: Registers database change sets including shopping cart schema migration.
+++#  */
++ databaseChangeLog:
++   - changeSet:
++       id: 0001-initial-placeholder
++@@ -6,3 +17,15 @@ databaseChangeLog:
++       changes:
++         - tagDatabase:
++             tag: initial-placeholder
+++  - changeSet:
+++      id: 0002-shopping-cart-tables
+++      author: gpt-5-codex
+++      comment: "Apply normalized shopping cart schema."
+++      changes:
+++        - sqlFile:
+++            path: db/migrations/01_shopping_cart_tables.sql
+++            encoding: utf8
+++            relativeToChangelogFile: false
+++            endDelimiter: ;
+++            splitStatements: true
+++            stripComments: false
++diff --git a/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java b/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
++index 03a7bf1..0ba6b19 100644
++--- a/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
+++++ b/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
++@@ -2,10 +2,10 @@
++  * App: Shopping Cart API
++  * Package: com.bobwares.shoppingcart
++  * File: ApplicationSmokeTest.java
++- * Version: 0.1.0
++- * Turns: 1
+++ * Version: 0.2.0
+++ * Turns: 1, 2
++  * Author: gpt-5-codex
++- * Date: 2025-10-02T23:02:16Z
+++ * Date: 2025-10-03T00:34:56Z
++  * Exports: ApplicationSmokeTest
++  * Description: Verifies that the Spring Boot application context loads successfully.
++  *              Method contextLoads: Triggers the default Spring Boot context startup for validation.
++@@ -18,7 +18,14 @@ import org.springframework.boot.test.context.SpringBootTest;
++ /**
++  * Smoke test ensuring the application context loads without throwing exceptions.
++  */
++-@SpringBootTest
+++@SpringBootTest(properties = {
+++    "spring.liquibase.enabled=false",
+++    "spring.datasource.url=jdbc:h2:mem:shopping_cart_smoke;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH",
+++    "spring.datasource.driver-class-name=org.h2.Driver",
+++    "spring.datasource.username=sa",
+++    "spring.datasource.password=",
+++    "spring.jpa.hibernate.ddl-auto=none"
+++})
++ class ApplicationSmokeTest {
++ 
++   /**
+diff --git a/ai/agentic-pipeline/turns/2/manifest.json b/ai/agentic-pipeline/turns/2/manifest.json
+new file mode 100644
+index 0000000..db344be
+--- /dev/null
++++ b/ai/agentic-pipeline/turns/2/manifest.json
+@@ -0,0 +1,73 @@
++{
++  "turnId": 2,
++  "timestampUtc": "2025-10-03T00:25:40Z",
++  "actor": {
++    "initiator": "user",
++    "agent": "gpt-5-codex"
++  },
++  "task": {
++    "name": "execute turn 2",
++    "inputs": [
++      "ai/context/project_context.md",
++      "ai/context/schemas/shopping-cart.schema.json"
++    ],
++    "parameters": {
++      "language": "java",
++      "framework": "spring-boot",
++      "pattern": "spring-boot-mvc-jpa-postgresql"
++    }
++  },
++  "artifacts": {
++    "changelog": "ai/agentic-pipeline/turns/2/changelog.md",
++    "adr": "ai/agentic-pipeline/turns/2/adr.md",
++    "diff": "ai/agentic-pipeline/turns/2/diff.patch",
++    "logs": [],
++    "reports": []
++  },
++  "changes": {
++    "added": [
++      "ai/agentic-pipeline/turns/2/adr.md",
++      "ai/agentic-pipeline/turns/2/changelog.md",
++      "ai/agentic-pipeline/turns/2/manifest.json",
++      "ai/agentic-pipeline/turns/2/session_context_values.md",
++      "db/README.md",
++      "db/migrations/01_shopping_cart_tables.sql",
++      "db/scripts/shopping_cart_test_data.sql",
++      "docker-compose.yml",
++      "e2e/ShoppingCart.http",
++      "src/main/java/com/bobwares/shoppingcart/ShoppingCart.java",
++      "src/main/java/com/bobwares/shoppingcart/ShoppingCartDiscount.java",
++      "src/main/java/com/bobwares/shoppingcart/ShoppingCartItem.java",
++      "src/main/java/com/bobwares/shoppingcart/ShoppingCartRepository.java",
++      "src/main/java/com/bobwares/shoppingcart/ShoppingCartService.java",
++      "src/main/java/com/bobwares/shoppingcart/api/ShoppingCartController.java",
++      "src/main/java/com/bobwares/shoppingcart/api/ShoppingCartDto.java",
++      "src/main/java/com/bobwares/shoppingcart/web/RestExceptionHandler.java",
++      "src/test/java/com/bobwares/shoppingcart/ShoppingCartServiceTests.java",
++      "src/test/java/com/bobwares/shoppingcart/api/ShoppingCartControllerIT.java"
++    ],
++    "modified": [
++      "README.md",
++      "ai/agentic-pipeline/turns/index.csv",
++      "changelog.md",
++      "pom.xml",
++      "src/main/resources/application.yml",
++      "src/main/resources/db/changelog/db.changelog-master.yml"
++    ],
++    "deleted": []
++  },
++  "metrics": {
++    "filesChanged": 0,
++    "linesAdded": 0,
++    "linesDeleted": 0,
++    "testsPassed": 0,
++    "testsFailed": 0,
++    "coverageDeltaPct": 0.0
++  },
++  "validation": {
++    "adrPresent": true,
++    "changelogPresent": true,
++    "lintStatus": "not-run",
++    "testsStatus": "not-run"
++  }
++}
+diff --git a/ai/agentic-pipeline/turns/2/session_context_values.md b/ai/agentic-pipeline/turns/2/session_context_values.md
+new file mode 100644
+index 0000000..f5d16fc
+--- /dev/null
++++ b/ai/agentic-pipeline/turns/2/session_context_values.md
+@@ -0,0 +1,7 @@
++# Session Context Values
++- sandbox_base_directory: workspace
++- project_root: /workspace/codex-shopping-cart-java
++- turn_id: 2
++- application_implementation_pattern: spring-boot-mvc-jpa-postgresql
++- project_name: Shopping Cart API
++- task: execute turn 2
+diff --git a/ai/agentic-pipeline/turns/index.csv b/ai/agentic-pipeline/turns/index.csv
+index 28c3f87..46c93f2 100644
+--- a/ai/agentic-pipeline/turns/index.csv
++++ b/ai/agentic-pipeline/turns/index.csv
+@@ -1,2 +1,3 @@
+ turnId,timestampUtc,task,branch,tag,headAfter,testsPassed,testsFailed,coverageDeltaPct
+ 1,2025-10-02T23:02:16Z,TASK 01 - Initialize Project,feat/initialize-project-turn1,turn/1,HEAD,1,0,0.0
++2,2025-10-03T00:25:40Z,execute turn 2,feat/shopping-cart-turn2,turn/2,HEAD,0,0,0.0
+diff --git a/changelog.md b/changelog.md
+index 789f103..d10879a 100644
+--- a/changelog.md
++++ b/changelog.md
+@@ -4,3 +4,9 @@
+ - Initialized Spring Boot project scaffold with Maven configuration, application properties, and baseline controller/test.
+ - Added supporting configuration files (.gitignore, README-config.md, Liquibase changelog, actuator HTTP requests).
+ - Recorded agentic pipeline metadata for ongoing turn tracking.
++
++## Turn 2 – 2025-10-03
++- Added Docker Compose support, database documentation, and Liquibase integration for the shopping cart schema.
++- Modeled shopping cart domain entities with Spring Data JPA, repository, service, REST controller, and error handling.
++- Implemented SQL migrations, seed data scripts, and end-to-end HTTP workflow covering CRUD scenarios.
++- Created unit and integration tests using Mockito and Testcontainers to validate persistence and API behavior.
+diff --git a/db/README.md b/db/README.md
+new file mode 100644
+index 0000000..72aa91b
+--- /dev/null
++++ b/db/README.md
+@@ -0,0 +1,36 @@
++<!--
++/**
++ * App: Shopping Cart API
++ * Package: db.documentation
++ * File: README.md
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: Database migration documentation
++ * Description: Explains how to execute Shopping Cart domain migrations and validate outcomes locally.
++ */
++-->
++# Database Guide
++
++## Domain Migration
++
++1. Ensure PostgreSQL is running via `docker compose up -d postgres`.
++2. Apply migrations with Liquibase:
++   ```
++   mvn liquibase:update
++   ```
++3. Verify schema objects:
++   ```
++   docker compose exec postgres psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -c "\dt shopping_cart.*"
++   ```
++4. Optionally rerun the migration script manually:
++   ```
++   docker compose exec postgres psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -f /docker-entrypoint-initdb.d/01_shopping_cart_tables.sql
++   ```
++
++### Smoke Test Query
++After loading the test data script, confirm row counts:
++```
++docker compose exec postgres psql -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -c "SELECT COUNT(*) FROM shopping_cart.shopping_cart;"
++```
+diff --git a/db/init/README.md b/db/init/README.md
+new file mode 100644
+index 0000000..cdfa0b7
+--- /dev/null
++++ b/db/init/README.md
+@@ -0,0 +1,16 @@
++<!--
++/**
++ * App: Shopping Cart API
++ * Package: db.init
++ * File: README.md
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:34:56Z
++ * Exports: Initialization directory documentation
++ * Description: Explains the purpose of the db/init directory used by Docker Compose for seed scripts.
++ */
++-->
++# Database Initialization Directory
++
++Place optional SQL or shell scripts in this folder to be executed automatically when the Docker Compose PostgreSQL container starts. Scripts run in alphanumeric order.
+diff --git a/db/migrations/01_shopping_cart_tables.sql b/db/migrations/01_shopping_cart_tables.sql
+new file mode 100644
+index 0000000..4aabeb4
+--- /dev/null
++++ b/db/migrations/01_shopping_cart_tables.sql
+@@ -0,0 +1,80 @@
++/*
++ * App: Shopping Cart API
++ * Package: db.migrations
++ * File: 01_shopping_cart_tables.sql
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: shopping_cart schema, tables, indexes, and summary view
++ * Description: Creates normalized shopping cart tables, constraints, indexes, and a summary view for reporting.
++ */
++BEGIN;
++
++CREATE SCHEMA IF NOT EXISTS shopping_cart;
++
++SET search_path TO shopping_cart, public;
++
++CREATE EXTENSION IF NOT EXISTS "pgcrypto";
++
++CREATE TABLE IF NOT EXISTS shopping_cart (
++    shopping_cart_id UUID PRIMARY KEY,
++    user_id UUID NOT NULL,
++    subtotal NUMERIC(12, 2) NOT NULL CHECK (subtotal >= 0),
++    tax NUMERIC(12, 2) DEFAULT 0 CHECK (tax >= 0),
++    shipping NUMERIC(12, 2) DEFAULT 0 CHECK (shipping >= 0),
++    total NUMERIC(12, 2) NOT NULL CHECK (total >= 0),
++    currency CHAR(3) NOT NULL,
++    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
++    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
++    UNIQUE (user_id)
++);
++
++CREATE INDEX IF NOT EXISTS idx_shopping_cart_user_id ON shopping_cart (user_id);
++
++CREATE TABLE IF NOT EXISTS shopping_cart_item (
++    cart_item_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++    shopping_cart_id UUID NOT NULL REFERENCES shopping_cart (shopping_cart_id) ON DELETE CASCADE,
++    product_id VARCHAR(64) NOT NULL,
++    name VARCHAR(255) NOT NULL,
++    quantity INTEGER NOT NULL CHECK (quantity > 0),
++    unit_price NUMERIC(12, 2) NOT NULL CHECK (unit_price >= 0),
++    currency CHAR(3) NOT NULL,
++    total_price NUMERIC(12, 2) NOT NULL CHECK (total_price >= 0),
++    UNIQUE (shopping_cart_id, product_id)
++);
++
++CREATE INDEX IF NOT EXISTS idx_cart_item_cart_id ON shopping_cart_item (shopping_cart_id);
++CREATE INDEX IF NOT EXISTS idx_cart_item_product_id ON shopping_cart_item (product_id);
++
++CREATE TABLE IF NOT EXISTS shopping_cart_discount (
++    discount_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++    shopping_cart_id UUID NOT NULL REFERENCES shopping_cart (shopping_cart_id) ON DELETE CASCADE,
++    code VARCHAR(64) NOT NULL,
++    amount NUMERIC(12, 2) NOT NULL CHECK (amount >= 0),
++    UNIQUE (shopping_cart_id, code)
++);
++
++CREATE INDEX IF NOT EXISTS idx_cart_discount_cart_id ON shopping_cart_discount (shopping_cart_id);
++CREATE INDEX IF NOT EXISTS idx_cart_discount_code ON shopping_cart_discount (code);
++
++CREATE OR REPLACE VIEW shopping_cart_summary AS
++SELECT
++    c.shopping_cart_id,
++    c.user_id,
++    c.subtotal,
++    c.tax,
++    c.shipping,
++    c.total,
++    c.currency,
++    c.created_at,
++    c.updated_at,
++    COUNT(i.cart_item_id) AS item_count,
++    COALESCE(SUM(i.total_price), 0) AS item_total,
++    COALESCE(SUM(d.amount), 0) AS discount_total
++FROM shopping_cart c
++LEFT JOIN shopping_cart_item i ON i.shopping_cart_id = c.shopping_cart_id
++LEFT JOIN shopping_cart_discount d ON d.shopping_cart_id = c.shopping_cart_id
++GROUP BY c.shopping_cart_id;
++
++COMMIT;
+diff --git a/db/scripts/shopping_cart_test_data.sql b/db/scripts/shopping_cart_test_data.sql
+new file mode 100644
+index 0000000..bd1c185
+--- /dev/null
++++ b/db/scripts/shopping_cart_test_data.sql
+@@ -0,0 +1,157 @@
++/*
++ * App: Shopping Cart API
++ * Package: db.scripts
++ * File: shopping_cart_test_data.sql
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: Shopping cart seed data inserts
++ * Description: Populates shopping cart tables with 20 sample carts, associated items, and discounts for local testing.
++ */
++BEGIN;
++
++WITH carts AS (
++    SELECT *
++    FROM (
++        VALUES
++            ('11111111-1111-1111-1111-111111111111', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 150.00, 9.00, 5.00, 154.00, 'USD',
++             '2025-09-28T10:00:00Z'::timestamptz, '2025-09-28T11:00:00Z'::timestamptz,
++             '[{"productId":"SKU-1001","name":"Wireless Mouse","quantity":2,"unitPrice":25.00,"currency":"USD","totalPrice":50.00},
++               {"productId":"SKU-2050","name":"Mechanical Keyboard","quantity":1,"unitPrice":75.00,"currency":"USD","totalPrice":75.00}]'::jsonb,
++             '[{"code":"SAVE10","amount":10.00}]'::jsonb),
++            ('22222222-2222-2222-2222-222222222222', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 89.99, 5.40, 0.00, 95.39, 'USD',
++             '2025-09-27T14:12:00Z'::timestamptz, '2025-09-27T14:45:00Z'::timestamptz,
++             '[{"productId":"SKU-3003","name":"Bluetooth Speaker","quantity":1,"unitPrice":89.99,"currency":"USD","totalPrice":89.99}]'::jsonb,
++             '[]'::jsonb),
++            ('33333333-3333-3333-3333-333333333333', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 210.50, 12.63, 8.99, 232.12, 'USD',
++             '2025-09-25T09:05:00Z'::timestamptz, '2025-09-25T09:50:00Z'::timestamptz,
++             '[{"productId":"SKU-4010","name":"4K Monitor","quantity":1,"unitPrice":210.50,"currency":"USD","totalPrice":210.50}]'::jsonb,
++             '[{"code":"FREESHIP","amount":8.99}]'::jsonb),
++            ('44444444-4444-4444-4444-444444444444', 'dddddddd-dddd-dddd-dddd-dddddddddddd', 65.00, 3.90, 4.50, 73.40, 'USD',
++             '2025-09-22T16:25:00Z'::timestamptz, '2025-09-22T16:59:00Z'::timestamptz,
++             '[{"productId":"SKU-5020","name":"USB-C Hub","quantity":1,"unitPrice":45.00,"currency":"USD","totalPrice":45.00},
++               {"productId":"SKU-8800","name":"HDMI Cable","quantity":2,"unitPrice":10.00,"currency":"USD","totalPrice":20.00}]'::jsonb,
++             '[]'::jsonb),
++            ('55555555-5555-5555-5555-555555555555', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 320.00, 19.20, 12.50, 351.70, 'USD',
++             '2025-09-20T08:30:00Z'::timestamptz, '2025-09-20T09:02:00Z'::timestamptz,
++             '[{"productId":"SKU-9201","name":"Gaming Headset","quantity":2,"unitPrice":80.00,"currency":"USD","totalPrice":160.00},
++               {"productId":"SKU-7777","name":"Webcam","quantity":1,"unitPrice":60.00,"currency":"USD","totalPrice":60.00},
++               {"productId":"SKU-3050","name":"Desk Lamp","quantity":2,"unitPrice":50.00,"currency":"USD","totalPrice":100.00}]'::jsonb,
++             '[{"code":"WELCOME15","amount":15.00}]'::jsonb),
++            ('66666666-6666-6666-6666-666666666666', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 49.50, 2.97, 0.00, 52.47, 'USD',
++             '2025-09-18T19:15:00Z'::timestamptz, '2025-09-18T19:28:00Z'::timestamptz,
++             '[{"productId":"SKU-1100","name":"Wireless Charger","quantity":1,"unitPrice":49.50,"currency":"USD","totalPrice":49.50}]'::jsonb,
++             '[]'::jsonb),
++            ('77777777-7777-7777-7777-777777777777', '00000000-0000-0000-0000-000000000000', 580.00, 34.80, 20.00, 634.80, 'USD',
++             '2025-09-17T12:45:00Z'::timestamptz, '2025-09-17T13:10:00Z'::timestamptz,
++             '[{"productId":"SKU-6600","name":"Ultrabook","quantity":1,"unitPrice":580.00,"currency":"USD","totalPrice":580.00}]'::jsonb,
++             '[]'::jsonb),
++            ('88888888-8888-8888-8888-888888888888', '11111111-2222-3333-4444-555555555555', 130.75, 7.85, 6.25, 144.85, 'USD',
++             '2025-09-15T11:22:00Z'::timestamptz, '2025-09-15T11:40:00Z'::timestamptz,
++             '[{"productId":"SKU-3210","name":"Smart Speaker","quantity":1,"unitPrice":130.75,"currency":"USD","totalPrice":130.75}]'::jsonb,
++             '[{"code":"LOYAL5","amount":5.00}]'::jsonb),
++            ('99999999-9999-9999-9999-999999999999', '22222222-3333-4444-5555-666666666666', 42.00, 2.52, 0.00, 44.52, 'USD',
++             '2025-09-14T07:40:00Z'::timestamptz, '2025-09-14T08:05:00Z'::timestamptz,
++             '[{"productId":"SKU-4500","name":"Portable Battery","quantity":2,"unitPrice":21.00,"currency":"USD","totalPrice":42.00}]'::jsonb,
++             '[]'::jsonb),
++            ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab', '33333333-4444-5555-6666-777777777777', 275.30, 16.52, 10.00, 301.82, 'USD',
++             '2025-09-12T17:05:00Z'::timestamptz, '2025-09-12T17:45:00Z'::timestamptz,
++             '[{"productId":"SKU-8701","name":"Graphic Tablet","quantity":1,"unitPrice":275.30,"currency":"USD","totalPrice":275.30}]'::jsonb,
++             '[{"code":"GRAPHIC","amount":10.00}]'::jsonb),
++            ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbc', '44444444-5555-6666-7777-888888888888', 315.00, 18.90, 12.00, 345.90, 'USD',
++             '2025-09-10T15:30:00Z'::timestamptz, '2025-09-10T16:00:00Z'::timestamptz,
++             '[{"productId":"SKU-9800","name":"Ergonomic Chair","quantity":1,"unitPrice":315.00,"currency":"USD","totalPrice":315.00}]'::jsonb,
++             '[]'::jsonb),
++            ('cccccccc-cccc-cccc-cccc-cccccccccccd', '55555555-6666-7777-8888-999999999999', 95.25, 5.72, 3.50, 104.47, 'USD',
++             '2025-09-09T10:18:00Z'::timestamptz, '2025-09-09T10:40:00Z'::timestamptz,
++             '[{"productId":"SKU-1122","name":"Smart Plug","quantity":3,"unitPrice":31.75,"currency":"USD","totalPrice":95.25}]'::jsonb,
++             '[]'::jsonb),
++            ('dddddddd-dddd-dddd-dddd-ddddddddddde', '66666666-7777-8888-9999-aaaaaaaaaaaa', 410.00, 24.60, 15.00, 449.60, 'USD',
++             '2025-09-08T13:10:00Z'::timestamptz, '2025-09-08T13:32:00Z'::timestamptz,
++             '[{"productId":"SKU-5521","name":"Gaming Console","quantity":1,"unitPrice":410.00,"currency":"USD","totalPrice":410.00}]'::jsonb,
++             '[{"code":"BUNDLE15","amount":15.00}]'::jsonb),
++            ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeef', '77777777-8888-9999-aaaa-bbbbbbbbbbbb', 220.40, 13.22, 7.00, 240.62, 'USD',
++             '2025-09-07T18:50:00Z'::timestamptz, '2025-09-07T19:14:00Z'::timestamptz,
++             '[{"productId":"SKU-6611","name":"Noise Cancelling Earbuds","quantity":2,"unitPrice":110.20,"currency":"USD","totalPrice":220.40}]'::jsonb,
++             '[{"code":"EARFUN","amount":7.00}]'::jsonb),
++            ('ffffffff-ffff-ffff-ffff-fffffffffff0', '88888888-9999-aaaa-bbbb-cccccccccccc', 185.75, 11.15, 6.75, 203.65, 'USD',
++             '2025-09-05T09:45:00Z'::timestamptz, '2025-09-05T10:05:00Z'::timestamptz,
++             '[{"productId":"SKU-7345","name":"Action Camera","quantity":1,"unitPrice":185.75,"currency":"USD","totalPrice":185.75}]'::jsonb,
++             '[]'::jsonb),
++            ('99999999-aaaa-bbbb-cccc-dddddddddddf', '99999999-aaaa-bbbb-cccc-eeeeeeeeeeee', 72.80, 4.37, 0.00, 77.17, 'USD',
++             '2025-09-03T07:00:00Z'::timestamptz, '2025-09-03T07:29:00Z'::timestamptz,
++             '[{"productId":"SKU-9090","name":"Fitness Tracker","quantity":1,"unitPrice":72.80,"currency":"USD","totalPrice":72.80}]'::jsonb,
++             '[]'::jsonb),
++            ('aaaa1111-bbbb-2222-cccc-333333333333', 'aaaa2222-bbbb-3333-cccc-444444444444', 140.00, 8.40, 5.00, 153.40, 'EUR',
++             '2025-09-02T12:10:00Z'::timestamptz, '2025-09-02T12:36:00Z'::timestamptz,
++             '[{"productId":"SKU-2200","name":"Espresso Machine","quantity":1,"unitPrice":140.00,"currency":"EUR","totalPrice":140.00}]'::jsonb,
++             '[{"code":"EURO5","amount":5.00}]'::jsonb),
++            ('bbbb2222-cccc-3333-dddd-444444444445', 'bbbb3333-cccc-4444-dddd-555555555555', 98.60, 5.92, 4.20, 108.72, 'EUR',
++             '2025-08-31T16:45:00Z'::timestamptz, '2025-08-31T17:05:00Z'::timestamptz,
++             '[{"productId":"SKU-3311","name":"Smart Thermostat","quantity":1,"unitPrice":98.60,"currency":"EUR","totalPrice":98.60}]'::jsonb,
++             '[]'::jsonb),
++            ('cccc3333-dddd-4444-eeee-555555555556', 'cccc4444-dddd-5555-eeee-666666666666', 54.99, 3.30, 0.00, 58.29, 'EUR',
++             '2025-08-30T09:20:00Z'::timestamptz, '2025-08-30T09:44:00Z'::timestamptz,
++             '[{"productId":"SKU-8765","name":"LED Strip Lights","quantity":3,"unitPrice":18.33,"currency":"EUR","totalPrice":54.99}]'::jsonb,
++             '[]'::jsonb),
++            ('dddd4444-eeee-5555-ffff-666666666667', 'dddd5555-eeee-6666-ffff-777777777777', 260.00, 15.60, 9.50, 285.10, 'EUR',
++             '2025-08-28T20:00:00Z'::timestamptz, '2025-08-28T20:20:00Z'::timestamptz,
++             '[{"productId":"SKU-7788","name":"Robot Vacuum","quantity":1,"unitPrice":260.00,"currency":"EUR","totalPrice":260.00}]'::jsonb,
++             '[{"code":"CLEAN10","amount":10.00}]'::jsonb),
++            ('eeee5555-ffff-6666-0000-777777777778', 'eeee6666-ffff-7777-0000-888888888888', 118.45, 7.11, 3.80, 129.36, 'EUR',
++             '2025-08-26T06:55:00Z'::timestamptz, '2025-08-26T07:15:00Z'::timestamptz,
++             '[{"productId":"SKU-9900","name":"E-Reader","quantity":1,"unitPrice":118.45,"currency":"EUR","totalPrice":118.45}]'::jsonb,
++             '[{"code":"READMORE","amount":3.80}]'::jsonb),
++            ('ffff6666-0000-7777-1111-888888888889', 'ffff7777-0000-8888-1111-999999999999', 305.00, 18.30, 11.00, 334.30, 'EUR',
++             '2025-08-24T18:10:00Z'::timestamptz, '2025-08-24T18:45:00Z'::timestamptz,
++             '[{"productId":"SKU-1234","name":"Smartphone","quantity":1,"unitPrice":305.00,"currency":"EUR","totalPrice":305.00}]'::jsonb,
++             '[]'::jsonb)
++    ) AS c(cart_id, user_id, subtotal, tax, shipping, total, currency, created_at, updated_at, items_json, discounts_json)
++)
++INSERT INTO shopping_cart.shopping_cart (shopping_cart_id, user_id, subtotal, tax, shipping, total, currency, created_at, updated_at)
++SELECT cart_id, user_id, subtotal, tax, shipping, total, currency, created_at, updated_at
++FROM carts
++ON CONFLICT (shopping_cart_id) DO NOTHING;
++
++INSERT INTO shopping_cart.shopping_cart_item (cart_item_id, shopping_cart_id, product_id, name, quantity, unit_price, currency, total_price)
++SELECT
++    COALESCE((item_record->>'cartItemId')::uuid, gen_random_uuid()),
++    carts.cart_id,
++    item_record->>'productId',
++    item_record->>'name',
++    (item_record->>'quantity')::integer,
++    ROUND((item_record->>'unitPrice')::numeric, 2),
++    COALESCE(item_record->>'currency', carts.currency),
++    ROUND((item_record->>'totalPrice')::numeric, 2)
++FROM carts
++CROSS JOIN LATERAL jsonb_to_recordset(carts.items_json) AS item_record(
++    "productId" text,
++    "name" text,
++    "quantity" int,
++    "unitPrice" numeric,
++    "currency" text,
++    "totalPrice" numeric,
++    "cartItemId" text
++)
++ON CONFLICT (shopping_cart_id, product_id) DO NOTHING;
++
++INSERT INTO shopping_cart.shopping_cart_discount (discount_id, shopping_cart_id, code, amount)
++SELECT
++    COALESCE((discount_record->>'discountId')::uuid, gen_random_uuid()),
++    carts.cart_id,
++    discount_record->>'code',
++    ROUND((discount_record->>'amount')::numeric, 2)
++FROM carts
++CROSS JOIN LATERAL jsonb_to_recordset(carts.discounts_json) AS discount_record(
++    "code" text,
++    "amount" numeric,
++    "discountId" text
++)
++WHERE (discount_record->>'code') IS NOT NULL
++ON CONFLICT (shopping_cart_id, code) DO NOTHING;
++
++COMMIT;
++
++-- Smoke test
++SELECT COUNT(*) AS shopping_cart_count FROM shopping_cart.shopping_cart;
+diff --git a/docker-compose.yml b/docker-compose.yml
+new file mode 100644
+index 0000000..e12b806
+--- /dev/null
++++ b/docker-compose.yml
+@@ -0,0 +1,37 @@
++# /**
++#  * App: Shopping Cart API
++#  * Package: infrastructure
++#  * File: docker-compose.yml
++#  * Version: 0.1.0
++#  * Turns: 2
++#  * Author: gpt-5-codex
++#  * Date: 2025-10-03T00:25:40Z
++#  * Exports: postgres service definition
++#  * Description: Defines a PostgreSQL 16 service for local development with health checks and volume persistence.
++#  */
++version: "3.9"
++
++services:
++  postgres:
++    image: postgres:16
++    container_name: postgres-shopping
++    restart: unless-stopped
++    ports:
++      - "${DATABASE_PORT}:5432"
++    environment:
++      POSTGRES_USER: "${DATABASE_USERNAME}"
++      POSTGRES_PASSWORD: "${DATABASE_PASSWORD}"
++      POSTGRES_DB: "${DATABASE_NAME}"
++    healthcheck:
++      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
++      interval: 5s
++      timeout: 3s
++      retries: 20
++    volumes:
++      - pgdata:/var/lib/postgresql/data
++      - ./db/init:/docker-entrypoint-initdb.d:ro
++    env_file:
++      - .env
++
++volumes:
++  pgdata:
+diff --git a/e2e/ShoppingCart.http b/e2e/ShoppingCart.http
+new file mode 100644
+index 0000000..d7a4d19
+--- /dev/null
++++ b/e2e/ShoppingCart.http
+@@ -0,0 +1,82 @@
++# /**
++#  * App: Shopping Cart API
++#  * Package: e2e
++#  * File: ShoppingCart.http
++#  * Version: 0.1.0
++#  * Turns: 2
++#  * Author: gpt-5-codex
++#  * Date: 2025-10-03T00:25:40Z
++#  * Exports: HTTP CRUD scenario for ShoppingCart API
++#  * Description: Executes create, read, update, delete, and not-found flows for shopping carts.
++#  */
++@host = http://localhost:{{APP_PORT:8080}}
++@cartId = {{cartId}}
++
++### Create shopping cart
++POST {{host}}/api/shopping-carts
++Content-Type: application/json
++Accept: application/json
++
++{
++  "userId": "11111111-1111-1111-1111-111111111111",
++  "subtotal": 125.00,
++  "tax": 10.00,
++  "shipping": 5.00,
++  "total": 140.00,
++  "currency": "USD",
++  "items": [
++    {
++      "productId": "SKU-200",
++      "name": "Bluetooth Headphones",
++      "quantity": 1,
++      "unitPrice": 125.00,
++      "totalPrice": 125.00,
++      "currency": "USD"
++    }
++  ],
++  "discounts": [
++    {
++      "code": "SAVE5",
++      "amount": 5.00
++    }
++  ]
++}
++
++### Store created cart identifier
++@cartId = {{response.body.$.id}}
++
++### Get shopping cart
++GET {{host}}/api/shopping-carts/{{cartId}}
++Accept: application/json
++
++### Update shopping cart
++PUT {{host}}/api/shopping-carts/{{cartId}}
++Content-Type: application/json
++Accept: application/json
++
++{
++  "subtotal": 110.00,
++  "tax": 8.00,
++  "shipping": 4.00,
++  "total": 122.00,
++  "currency": "USD",
++  "items": [
++    {
++      "productId": "SKU-201",
++      "name": "Wireless Mouse",
++      "quantity": 2,
++      "unitPrice": 40.00,
++      "totalPrice": 80.00,
++      "currency": "USD"
++    }
++  ],
++  "discounts": []
++}
++
++### Delete shopping cart
++DELETE {{host}}/api/shopping-carts/{{cartId}}
++Accept: application/json
++
++### Verify deletion
++GET {{host}}/api/shopping-carts/{{cartId}}
++Accept: application/json
+diff --git a/pom.xml b/pom.xml
+index e5ebfdc..79d98b4 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -36,6 +36,10 @@
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-web</artifactId>
+     </dependency>
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-starter-data-jpa</artifactId>
++    </dependency>
+     <dependency>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-validation</artifactId>
+@@ -81,6 +85,26 @@
+       <artifactId>spring-boot-starter-test</artifactId>
+       <scope>test</scope>
+     </dependency>
++    <dependency>
++      <groupId>com.h2database</groupId>
++      <artifactId>h2</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.springframework.boot</groupId>
++      <artifactId>spring-boot-testcontainers</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.testcontainers</groupId>
++      <artifactId>junit-jupiter</artifactId>
++      <scope>test</scope>
++    </dependency>
++    <dependency>
++      <groupId>org.testcontainers</groupId>
++      <artifactId>postgresql</artifactId>
++      <scope>test</scope>
++    </dependency>
+   </dependencies>
+ 
+   <build>
+diff --git a/src/main/java/com/bobwares/shoppingcart/ShoppingCart.java b/src/main/java/com/bobwares/shoppingcart/ShoppingCart.java
+new file mode 100644
+index 0000000..20f742e
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/ShoppingCart.java
+@@ -0,0 +1,217 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCart.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCart
++ * Description: JPA aggregate root representing a shopping cart with pricing totals, currency, and child collections.
++ */
++package com.bobwares.shoppingcart;
++
++import jakarta.persistence.CascadeType;
++import jakarta.persistence.Column;
++import jakarta.persistence.Entity;
++import jakarta.persistence.FetchType;
++import jakarta.persistence.Id;
++import jakarta.persistence.OneToMany;
++import jakarta.persistence.Table;
++import jakarta.persistence.UniqueConstraint;
++import jakarta.validation.constraints.NotBlank;
++import jakarta.validation.constraints.NotNull;
++import jakarta.validation.constraints.Pattern;
++import jakarta.validation.constraints.Size;
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.List;
++import java.util.Objects;
++import java.util.UUID;
++import org.hibernate.annotations.CreationTimestamp;
++import org.hibernate.annotations.JdbcTypeCode;
++import org.hibernate.annotations.UpdateTimestamp;
++import org.hibernate.type.SqlTypes;
++
++/**
++ * Aggregate root entity for shopping carts. Captures cart pricing totals and relations to cart items and discounts.
++ */
++@Entity
++@Table(
++    name = "shopping_cart",
++    schema = "shopping_cart",
++    uniqueConstraints = @UniqueConstraint(name = "uk_shopping_cart_user_id", columnNames = "user_id")
++)
++public class ShoppingCart {
++
++  @Id
++  @Column(name = "shopping_cart_id", nullable = false, updatable = false)
++  @JdbcTypeCode(SqlTypes.UUID)
++  private UUID id;
++
++  @NotNull
++  @Column(name = "user_id", nullable = false, unique = true)
++  @JdbcTypeCode(SqlTypes.UUID)
++  private UUID userId;
++
++  @NotNull
++  @Column(name = "subtotal", nullable = false, precision = 12, scale = 2)
++  private BigDecimal subtotal;
++
++  @Column(name = "tax", precision = 12, scale = 2)
++  private BigDecimal tax;
++
++  @Column(name = "shipping", precision = 12, scale = 2)
++  private BigDecimal shipping;
++
++  @NotNull
++  @Column(name = "total", nullable = false, precision = 12, scale = 2)
++  private BigDecimal total;
++
++  @NotBlank
++  @Size(min = 3, max = 3)
++  @Pattern(regexp = "^[A-Z]{3}$")
++  @Column(name = "currency", nullable = false, length = 3)
++  private String currency;
++
++  @CreationTimestamp
++  @Column(name = "created_at", nullable = false, updatable = false)
++  private Instant createdAt;
++
++  @UpdateTimestamp
++  @Column(name = "updated_at", nullable = false)
++  private Instant updatedAt;
++
++  @OneToMany(
++      mappedBy = "shoppingCart",
++      cascade = CascadeType.ALL,
++      orphanRemoval = true,
++      fetch = FetchType.LAZY)
++  private final List<ShoppingCartItem> items = new ArrayList<>();
++
++  @OneToMany(
++      mappedBy = "shoppingCart",
++      cascade = CascadeType.ALL,
++      orphanRemoval = true,
++      fetch = FetchType.LAZY)
++  private final List<ShoppingCartDiscount> discounts = new ArrayList<>();
++
++  public UUID getId() {
++    return id;
++  }
++
++  public void setId(UUID id) {
++    this.id = id;
++  }
++
++  public UUID getUserId() {
++    return userId;
++  }
++
++  public void setUserId(UUID userId) {
++    this.userId = userId;
++  }
++
++  public BigDecimal getSubtotal() {
++    return subtotal;
++  }
++
++  public void setSubtotal(BigDecimal subtotal) {
++    this.subtotal = subtotal;
++  }
++
++  public BigDecimal getTax() {
++    return tax;
++  }
++
++  public void setTax(BigDecimal tax) {
++    this.tax = tax;
++  }
++
++  public BigDecimal getShipping() {
++    return shipping;
++  }
++
++  public void setShipping(BigDecimal shipping) {
++    this.shipping = shipping;
++  }
++
++  public BigDecimal getTotal() {
++    return total;
++  }
++
++  public void setTotal(BigDecimal total) {
++    this.total = total;
++  }
++
++  public String getCurrency() {
++    return currency;
++  }
++
++  public void setCurrency(String currency) {
++    this.currency = currency;
++  }
++
++  public Instant getCreatedAt() {
++    return createdAt;
++  }
++
++  public Instant getUpdatedAt() {
++    return updatedAt;
++  }
++
++  public List<ShoppingCartItem> getItems() {
++    return Collections.unmodifiableList(items);
++  }
++
++  public List<ShoppingCartDiscount> getDiscounts() {
++    return Collections.unmodifiableList(discounts);
++  }
++
++  public void replaceItems(List<ShoppingCartItem> newItems) {
++    items.clear();
++    if (newItems != null) {
++      newItems.forEach(this::addItem);
++    }
++  }
++
++  public void replaceDiscounts(List<ShoppingCartDiscount> newDiscounts) {
++    discounts.clear();
++    if (newDiscounts != null) {
++      newDiscounts.forEach(this::addDiscount);
++    }
++  }
++
++  public void addItem(ShoppingCartItem item) {
++    if (item != null) {
++      item.setShoppingCart(this);
++      items.add(item);
++    }
++  }
++
++  public void addDiscount(ShoppingCartDiscount discount) {
++    if (discount != null) {
++      discount.setShoppingCart(this);
++      discounts.add(discount);
++    }
++  }
++
++  @Override
++  public boolean equals(Object o) {
++    if (this == o) {
++      return true;
++    }
++    if (o == null || getClass() != o.getClass()) {
++      return false;
++    }
++    ShoppingCart that = (ShoppingCart) o;
++    return Objects.equals(id, that.id);
++  }
++
++  @Override
++  public int hashCode() {
++    return Objects.hash(id);
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/ShoppingCartDiscount.java b/src/main/java/com/bobwares/shoppingcart/ShoppingCartDiscount.java
+new file mode 100644
+index 0000000..669e445
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/ShoppingCartDiscount.java
+@@ -0,0 +1,108 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCartDiscount.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartDiscount
++ * Description: Represents a discount applied to a shopping cart with amount tracking.
++ */
++package com.bobwares.shoppingcart;
++
++import jakarta.persistence.Column;
++import jakarta.persistence.Entity;
++import jakarta.persistence.FetchType;
++import jakarta.persistence.GeneratedValue;
++import jakarta.persistence.Id;
++import jakarta.persistence.JoinColumn;
++import jakarta.persistence.ManyToOne;
++import jakarta.persistence.Table;
++import jakarta.persistence.UniqueConstraint;
++import jakarta.validation.constraints.NotBlank;
++import jakarta.validation.constraints.NotNull;
++import jakarta.validation.constraints.Size;
++import java.math.BigDecimal;
++import java.util.Objects;
++import java.util.UUID;
++import org.hibernate.annotations.JdbcTypeCode;
++import org.hibernate.annotations.UuidGenerator;
++import org.hibernate.type.SqlTypes;
++
++/**
++ * Entity representing a discount row associated with a shopping cart.
++ */
++@Entity
++@Table(
++    name = "shopping_cart_discount",
++    schema = "shopping_cart",
++    uniqueConstraints = @UniqueConstraint(name = "uk_cart_discount_code", columnNames = {"shopping_cart_id", "code"})
++)
++public class ShoppingCartDiscount {
++
++  @Id
++  @GeneratedValue
++  @UuidGenerator
++  @JdbcTypeCode(SqlTypes.UUID)
++  @Column(name = "discount_id", nullable = false, updatable = false)
++  private UUID id;
++
++  @ManyToOne(fetch = FetchType.LAZY, optional = false)
++  @JoinColumn(name = "shopping_cart_id", nullable = false)
++  private ShoppingCart shoppingCart;
++
++  @NotBlank
++  @Size(max = 64)
++  @Column(name = "code", nullable = false, length = 64)
++  private String code;
++
++  @NotNull
++  @Column(name = "amount", nullable = false, precision = 12, scale = 2)
++  private BigDecimal amount;
++
++  public UUID getId() {
++    return id;
++  }
++
++  public ShoppingCart getShoppingCart() {
++    return shoppingCart;
++  }
++
++  public void setShoppingCart(ShoppingCart shoppingCart) {
++    this.shoppingCart = shoppingCart;
++  }
++
++  public String getCode() {
++    return code;
++  }
++
++  public void setCode(String code) {
++    this.code = code;
++  }
++
++  public BigDecimal getAmount() {
++    return amount;
++  }
++
++  public void setAmount(BigDecimal amount) {
++    this.amount = amount;
++  }
++
++  @Override
++  public boolean equals(Object o) {
++    if (this == o) {
++      return true;
++    }
++    if (o == null || getClass() != o.getClass()) {
++      return false;
++    }
++    ShoppingCartDiscount that = (ShoppingCartDiscount) o;
++    return Objects.equals(id, that.id);
++  }
++
++  @Override
++  public int hashCode() {
++    return Objects.hash(id);
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/ShoppingCartItem.java b/src/main/java/com/bobwares/shoppingcart/ShoppingCartItem.java
+new file mode 100644
+index 0000000..376db6f
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/ShoppingCartItem.java
+@@ -0,0 +1,161 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCartItem.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartItem
++ * Description: Represents a line item within a shopping cart including product and pricing metadata.
++ */
++package com.bobwares.shoppingcart;
++
++import jakarta.persistence.Column;
++import jakarta.persistence.Entity;
++import jakarta.persistence.FetchType;
++import jakarta.persistence.GeneratedValue;
++import jakarta.persistence.Id;
++import jakarta.persistence.JoinColumn;
++import jakarta.persistence.ManyToOne;
++import jakarta.persistence.Table;
++import jakarta.persistence.UniqueConstraint;
++import jakarta.validation.constraints.Min;
++import jakarta.validation.constraints.NotBlank;
++import jakarta.validation.constraints.NotNull;
++import jakarta.validation.constraints.Pattern;
++import jakarta.validation.constraints.Size;
++import java.math.BigDecimal;
++import java.util.Objects;
++import java.util.UUID;
++import org.hibernate.annotations.JdbcTypeCode;
++import org.hibernate.annotations.UuidGenerator;
++import org.hibernate.type.SqlTypes;
++
++/**
++ * Entity representing a cart line item.
++ */
++@Entity
++@Table(
++    name = "shopping_cart_item",
++    schema = "shopping_cart",
++    uniqueConstraints = @UniqueConstraint(name = "uk_cart_item_cart_product", columnNames = {"shopping_cart_id", "product_id"})
++)
++public class ShoppingCartItem {
++
++  @Id
++  @GeneratedValue
++  @UuidGenerator
++  @JdbcTypeCode(SqlTypes.UUID)
++  @Column(name = "cart_item_id", nullable = false, updatable = false)
++  private UUID id;
++
++  @ManyToOne(fetch = FetchType.LAZY, optional = false)
++  @JoinColumn(name = "shopping_cart_id", nullable = false)
++  private ShoppingCart shoppingCart;
++
++  @NotBlank
++  @Size(max = 64)
++  @Column(name = "product_id", nullable = false, length = 64)
++  private String productId;
++
++  @NotBlank
++  @Size(max = 255)
++  @Column(name = "name", nullable = false, length = 255)
++  private String name;
++
++  @Min(1)
++  @Column(name = "quantity", nullable = false)
++  private int quantity;
++
++  @NotNull
++  @Column(name = "unit_price", nullable = false, precision = 12, scale = 2)
++  private BigDecimal unitPrice;
++
++  @NotBlank
++  @Pattern(regexp = "^[A-Z]{3}$")
++  @Size(min = 3, max = 3)
++  @Column(name = "currency", nullable = false, length = 3)
++  private String currency;
++
++  @NotNull
++  @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
++  private BigDecimal totalPrice;
++
++  public UUID getId() {
++    return id;
++  }
++
++  public ShoppingCart getShoppingCart() {
++    return shoppingCart;
++  }
++
++  public void setShoppingCart(ShoppingCart shoppingCart) {
++    this.shoppingCart = shoppingCart;
++  }
++
++  public String getProductId() {
++    return productId;
++  }
++
++  public void setProductId(String productId) {
++    this.productId = productId;
++  }
++
++  public String getName() {
++    return name;
++  }
++
++  public void setName(String name) {
++    this.name = name;
++  }
++
++  public int getQuantity() {
++    return quantity;
++  }
++
++  public void setQuantity(int quantity) {
++    this.quantity = quantity;
++  }
++
++  public BigDecimal getUnitPrice() {
++    return unitPrice;
++  }
++
++  public void setUnitPrice(BigDecimal unitPrice) {
++    this.unitPrice = unitPrice;
++  }
++
++  public String getCurrency() {
++    return currency;
++  }
++
++  public void setCurrency(String currency) {
++    this.currency = currency;
++  }
++
++  public BigDecimal getTotalPrice() {
++    return totalPrice;
++  }
++
++  public void setTotalPrice(BigDecimal totalPrice) {
++    this.totalPrice = totalPrice;
++  }
++
++  @Override
++  public boolean equals(Object o) {
++    if (this == o) {
++      return true;
++    }
++    if (o == null || getClass() != o.getClass()) {
++      return false;
++    }
++    ShoppingCartItem that = (ShoppingCartItem) o;
++    return Objects.equals(id, that.id);
++  }
++
++  @Override
++  public int hashCode() {
++    return Objects.hash(id);
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/ShoppingCartRepository.java b/src/main/java/com/bobwares/shoppingcart/ShoppingCartRepository.java
+new file mode 100644
+index 0000000..108cacd
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/ShoppingCartRepository.java
+@@ -0,0 +1,28 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCartRepository.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartRepository
++ * Description: Spring Data repository for the ShoppingCart aggregate with convenience lookups.
++ */
++package com.bobwares.shoppingcart;
++
++import java.util.Optional;
++import java.util.UUID;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.stereotype.Repository;
++
++/**
++ * Repository enabling CRUD and custom queries for {@link ShoppingCart} aggregates.
++ */
++@Repository
++public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, UUID> {
++
++  Optional<ShoppingCart> findByUserId(UUID userId);
++
++  boolean existsByUserId(UUID userId);
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/ShoppingCartService.java b/src/main/java/com/bobwares/shoppingcart/ShoppingCartService.java
+new file mode 100644
+index 0000000..fad65ce
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/ShoppingCartService.java
+@@ -0,0 +1,182 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCartService.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartService
++ * Description: Provides transactional CRUD operations and mapping between entities and API DTOs.
++ */
++package com.bobwares.shoppingcart;
++
++import com.bobwares.shoppingcart.api.ShoppingCartDto;
++import jakarta.persistence.EntityNotFoundException;
++import jakarta.transaction.Transactional;
++import java.math.BigDecimal;
++import java.util.List;
++import java.util.Locale;
++import java.util.UUID;
++import java.util.stream.Collectors;
++import org.springframework.stereotype.Service;
++
++/**
++ * Service that manages {@link ShoppingCart} aggregates and coordinates persistence operations.
++ */
++@Service
++@Transactional
++public class ShoppingCartService {
++
++  private final ShoppingCartRepository repository;
++
++  public ShoppingCartService(ShoppingCartRepository repository) {
++    this.repository = repository;
++  }
++
++  /**
++   * Creates a new shopping cart for a user and persists it.
++   *
++   * @param request validated create payload
++   * @return persisted shopping cart response
++   */
++  public ShoppingCartDto.Response create(ShoppingCartDto.CreateRequest request) {
++    if (repository.existsByUserId(request.getUserId())) {
++      throw new IllegalArgumentException("User already has an active shopping cart");
++    }
++
++    ShoppingCart cart = new ShoppingCart();
++    cart.setId(UUID.randomUUID());
++    cart.setUserId(request.getUserId());
++    applyTotals(cart, request.getSubtotal(), request.getTax(), request.getShipping(), request.getTotal(), request.getCurrency());
++
++    cart.replaceItems(request.getItems().stream().map(this::toItemEntity).collect(Collectors.toList()));
++    cart.replaceDiscounts(request.getDiscounts().stream().map(this::toDiscountEntity).collect(Collectors.toList()));
++
++    ShoppingCart saved = repository.save(cart);
++    return mapToResponse(saved);
++  }
++
++  /**
++   * Retrieves a shopping cart by its identifier.
++   *
++   * @param id cart identifier
++   * @return DTO response
++   */
++  @Transactional(Transactional.TxType.SUPPORTS)
++  public ShoppingCartDto.Response get(UUID id) {
++    ShoppingCart cart = repository.findById(id)
++        .orElseThrow(() -> new EntityNotFoundException("Shopping cart not found: " + id));
++    return mapToResponse(cart);
++  }
++
++  /**
++   * Lists all shopping carts.
++   *
++   * @return list of DTO responses
++   */
++  @Transactional(Transactional.TxType.SUPPORTS)
++  public List<ShoppingCartDto.Response> list() {
++    return repository.findAll().stream()
++        .map(this::mapToResponse)
++        .collect(Collectors.toList());
++  }
++
++  /**
++   * Updates an existing shopping cart with provided totals and child collections.
++   *
++   * @param id cart identifier
++   * @param request update payload
++   * @return updated response
++   */
++  public ShoppingCartDto.Response update(UUID id, ShoppingCartDto.UpdateRequest request) {
++    ShoppingCart cart = repository.findById(id)
++        .orElseThrow(() -> new EntityNotFoundException("Shopping cart not found: " + id));
++
++    applyTotals(cart, request.getSubtotal(), request.getTax(), request.getShipping(), request.getTotal(), request.getCurrency());
++    cart.replaceItems(request.getItems().stream().map(this::toItemEntity).collect(Collectors.toList()));
++    cart.replaceDiscounts(request.getDiscounts().stream().map(this::toDiscountEntity).collect(Collectors.toList()));
++
++    ShoppingCart saved = repository.save(cart);
++    return mapToResponse(saved);
++  }
++
++  /**
++   * Deletes a shopping cart and associated rows.
++   *
++   * @param id cart identifier
++   */
++  public void delete(UUID id) {
++    ShoppingCart cart = repository.findById(id)
++        .orElseThrow(() -> new EntityNotFoundException("Shopping cart not found: " + id));
++    repository.delete(cart);
++  }
++
++  private void applyTotals(ShoppingCart cart, BigDecimal subtotal, BigDecimal tax, BigDecimal shipping, BigDecimal total,
++      String currency) {
++    cart.setSubtotal(subtotal);
++    cart.setTax(tax != null ? tax : BigDecimal.ZERO);
++    cart.setShipping(shipping != null ? shipping : BigDecimal.ZERO);
++    cart.setTotal(total);
++    cart.setCurrency(currency != null ? currency.toUpperCase(Locale.ROOT) : null);
++  }
++
++  private ShoppingCartItem toItemEntity(ShoppingCartDto.ItemPayload payload) {
++    ShoppingCartItem item = new ShoppingCartItem();
++    item.setProductId(payload.getProductId());
++    item.setName(payload.getName());
++    item.setQuantity(payload.getQuantity());
++    item.setUnitPrice(payload.getUnitPrice());
++    item.setCurrency(payload.getCurrency().toUpperCase(Locale.ROOT));
++
++    BigDecimal totalPrice = payload.getTotalPrice();
++    if (totalPrice == null) {
++      totalPrice = payload.getUnitPrice().multiply(BigDecimal.valueOf(payload.getQuantity()));
++    }
++    item.setTotalPrice(totalPrice);
++    return item;
++  }
++
++  private ShoppingCartDiscount toDiscountEntity(ShoppingCartDto.DiscountPayload payload) {
++    ShoppingCartDiscount discount = new ShoppingCartDiscount();
++    discount.setCode(payload.getCode());
++    discount.setAmount(payload.getAmount());
++    return discount;
++  }
++
++  private ShoppingCartDto.Response mapToResponse(ShoppingCart cart) {
++    List<ShoppingCartDto.Item> items = cart.getItems().stream()
++        .map(item -> new ShoppingCartDto.Item(
++            item.getId(),
++            item.getProductId(),
++            item.getName(),
++            item.getQuantity(),
++            item.getUnitPrice(),
++            item.getTotalPrice(),
++            item.getCurrency()
++        ))
++        .collect(Collectors.toList());
++
++    List<ShoppingCartDto.Discount> discounts = cart.getDiscounts().stream()
++        .map(discount -> new ShoppingCartDto.Discount(
++            discount.getId(),
++            discount.getCode(),
++            discount.getAmount()
++        ))
++        .collect(Collectors.toList());
++
++    return new ShoppingCartDto.Response(
++        cart.getId(),
++        cart.getUserId(),
++        cart.getSubtotal(),
++        cart.getTax(),
++        cart.getShipping(),
++        cart.getTotal(),
++        cart.getCurrency(),
++        cart.getCreatedAt(),
++        cart.getUpdatedAt(),
++        items,
++        discounts
++    );
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartController.java b/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartController.java
+new file mode 100644
+index 0000000..703c7ae
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartController.java
+@@ -0,0 +1,107 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart.api
++ * File: ShoppingCartController.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartController
++ * Description: REST controller exposing CRUD endpoints for shopping carts with OpenAPI annotations.
++ */
++package com.bobwares.shoppingcart.api;
++
++import com.bobwares.shoppingcart.ShoppingCartService;
++import io.swagger.v3.oas.annotations.Operation;
++import io.swagger.v3.oas.annotations.media.Content;
++import io.swagger.v3.oas.annotations.media.Schema;
++import io.swagger.v3.oas.annotations.parameters.RequestBody;
++import io.swagger.v3.oas.annotations.responses.ApiResponse;
++import io.swagger.v3.oas.annotations.responses.ApiResponses;
++import io.swagger.v3.oas.annotations.tags.Tag;
++import jakarta.validation.Valid;
++import java.net.URI;
++import java.util.List;
++import java.util.UUID;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.DeleteMapping;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.PathVariable;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.PutMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++/**
++ * REST controller providing CRUD operations for shopping carts.
++ */
++@RestController
++@RequestMapping("/api/shopping-carts")
++@Tag(name = "Shopping Carts", description = "CRUD operations for shopping carts")
++public class ShoppingCartController {
++
++  private final ShoppingCartService shoppingCartService;
++
++  public ShoppingCartController(ShoppingCartService shoppingCartService) {
++    this.shoppingCartService = shoppingCartService;
++  }
++
++  @PostMapping
++  @Operation(summary = "Create a shopping cart")
++  @ApiResponses({
++      @ApiResponse(responseCode = "201", description = "Cart created",
++          content = @Content(schema = @Schema(implementation = ShoppingCartDto.Response.class))),
++      @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
++  })
++  public ResponseEntity<ShoppingCartDto.Response> create(
++      @Valid @org.springframework.web.bind.annotation.RequestBody
++      @RequestBody(description = "Shopping cart creation payload", required = true)
++      ShoppingCartDto.CreateRequest request) {
++    ShoppingCartDto.Response response = shoppingCartService.create(request);
++    return ResponseEntity.created(URI.create("/api/shopping-carts/" + response.id())).body(response);
++  }
++
++  @GetMapping("/{id}")
++  @Operation(summary = "Retrieve a shopping cart by id")
++  @ApiResponses({
++      @ApiResponse(responseCode = "200", description = "Cart found",
++          content = @Content(schema = @Schema(implementation = ShoppingCartDto.Response.class))),
++      @ApiResponse(responseCode = "404", description = "Cart not found", content = @Content)
++  })
++  public ResponseEntity<ShoppingCartDto.Response> get(@PathVariable UUID id) {
++    return ResponseEntity.ok(shoppingCartService.get(id));
++  }
++
++  @GetMapping
++  @Operation(summary = "List shopping carts")
++  @ApiResponse(responseCode = "200", description = "List of carts",
++      content = @Content(schema = @Schema(implementation = ShoppingCartDto.Response.class)))
++  public ResponseEntity<List<ShoppingCartDto.Response>> list() {
++    return ResponseEntity.ok(shoppingCartService.list());
++  }
++
++  @PutMapping("/{id}")
++  @Operation(summary = "Update a shopping cart")
++  @ApiResponses({
++      @ApiResponse(responseCode = "200", description = "Cart updated",
++          content = @Content(schema = @Schema(implementation = ShoppingCartDto.Response.class))),
++      @ApiResponse(responseCode = "400", description = "Validation error", content = @Content),
++      @ApiResponse(responseCode = "404", description = "Cart not found", content = @Content)
++  })
++  public ResponseEntity<ShoppingCartDto.Response> update(
++      @PathVariable UUID id,
++      @Valid @org.springframework.web.bind.annotation.RequestBody
++      @RequestBody(description = "Shopping cart update payload", required = true)
++      ShoppingCartDto.UpdateRequest request) {
++    return ResponseEntity.ok(shoppingCartService.update(id, request));
++  }
++
++  @DeleteMapping("/{id}")
++  @Operation(summary = "Delete a shopping cart")
++  @ApiResponse(responseCode = "204", description = "Cart deleted")
++  public ResponseEntity<Void> delete(@PathVariable UUID id) {
++    shoppingCartService.delete(id);
++    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartDto.java b/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartDto.java
+new file mode 100644
+index 0000000..1782e77
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/api/ShoppingCartDto.java
+@@ -0,0 +1,388 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart.api
++ * File: ShoppingCartDto.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartDto
++ * Description: Defines API request and response payloads for Shopping Cart REST endpoints.
++ */
++package com.bobwares.shoppingcart.api;
++
++import io.swagger.v3.oas.annotations.media.Schema;
++import jakarta.validation.Valid;
++import jakarta.validation.constraints.NotBlank;
++import jakarta.validation.constraints.NotNull;
++import jakarta.validation.constraints.Pattern;
++import jakarta.validation.constraints.Positive;
++import jakarta.validation.constraints.PositiveOrZero;
++import jakarta.validation.constraints.Size;
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.UUID;
++
++/**
++ * Container for Shopping Cart API request and response DTOs.
++ */
++public final class ShoppingCartDto {
++
++  private ShoppingCartDto() {
++  }
++
++  /**
++   * Payload submitted when creating a shopping cart.
++   */
++  @Schema(description = "Request payload for creating a shopping cart")
++  public static final class CreateRequest {
++
++    @NotNull
++    @Schema(description = "Identifier of the user that owns the cart", example = "d0fbb13a-7d5d-4d9a-9fc8-20a5c0dd768e")
++    private UUID userId;
++
++    @NotNull
++    @PositiveOrZero
++    @Schema(description = "Subtotal of cart items before taxes or discounts", example = "120.00")
++    private BigDecimal subtotal;
++
++    @PositiveOrZero
++    @Schema(description = "Total tax applied to the cart", example = "9.20")
++    private BigDecimal tax = BigDecimal.ZERO;
++
++    @PositiveOrZero
++    @Schema(description = "Shipping cost applied to the cart", example = "5.99")
++    private BigDecimal shipping = BigDecimal.ZERO;
++
++    @NotNull
++    @PositiveOrZero
++    @Schema(description = "Grand total for the cart", example = "135.19")
++    private BigDecimal total;
++
++    @NotBlank
++    @Size(min = 3, max = 3)
++    @Pattern(regexp = "^[A-Z]{3}$")
++    @Schema(description = "Three-letter ISO currency code", example = "USD")
++    private String currency;
++
++    @NotNull
++    @Size(min = 1)
++    @Valid
++    private List<ItemPayload> items = new ArrayList<>();
++
++    @Valid
++    private List<DiscountPayload> discounts = new ArrayList<>();
++
++    public UUID getUserId() {
++      return userId;
++    }
++
++    public void setUserId(UUID userId) {
++      this.userId = userId;
++    }
++
++    public BigDecimal getSubtotal() {
++      return subtotal;
++    }
++
++    public void setSubtotal(BigDecimal subtotal) {
++      this.subtotal = subtotal;
++    }
++
++    public BigDecimal getTax() {
++      return tax;
++    }
++
++    public void setTax(BigDecimal tax) {
++      this.tax = tax;
++    }
++
++    public BigDecimal getShipping() {
++      return shipping;
++    }
++
++    public void setShipping(BigDecimal shipping) {
++      this.shipping = shipping;
++    }
++
++    public BigDecimal getTotal() {
++      return total;
++    }
++
++    public void setTotal(BigDecimal total) {
++      this.total = total;
++    }
++
++    public String getCurrency() {
++      return currency;
++    }
++
++    public void setCurrency(String currency) {
++      this.currency = currency;
++    }
++
++    public List<ItemPayload> getItems() {
++      return items;
++    }
++
++    public void setItems(List<ItemPayload> items) {
++      this.items = items;
++    }
++
++    public List<DiscountPayload> getDiscounts() {
++      return discounts;
++    }
++
++    public void setDiscounts(List<DiscountPayload> discounts) {
++      this.discounts = discounts;
++    }
++  }
++
++  /**
++   * Payload submitted when updating a shopping cart.
++   */
++  @Schema(description = "Request payload for updating a shopping cart")
++  public static final class UpdateRequest {
++
++    @NotNull
++    @PositiveOrZero
++    @Schema(description = "Updated subtotal", example = "125.00")
++    private BigDecimal subtotal;
++
++    @PositiveOrZero
++    @Schema(description = "Updated tax value", example = "10.00")
++    private BigDecimal tax = BigDecimal.ZERO;
++
++    @PositiveOrZero
++    @Schema(description = "Updated shipping amount", example = "4.00")
++    private BigDecimal shipping = BigDecimal.ZERO;
++
++    @NotNull
++    @PositiveOrZero
++    @Schema(description = "Updated total", example = "139.00")
++    private BigDecimal total;
++
++    @NotBlank
++    @Size(min = 3, max = 3)
++    @Pattern(regexp = "^[A-Z]{3}$")
++    @Schema(description = "Updated currency", example = "USD")
++    private String currency;
++
++    @NotNull
++    @Size(min = 1)
++    @Valid
++    private List<ItemPayload> items = new ArrayList<>();
++
++    @Valid
++    private List<DiscountPayload> discounts = new ArrayList<>();
++
++    public BigDecimal getSubtotal() {
++      return subtotal;
++    }
++
++    public void setSubtotal(BigDecimal subtotal) {
++      this.subtotal = subtotal;
++    }
++
++    public BigDecimal getTax() {
++      return tax;
++    }
++
++    public void setTax(BigDecimal tax) {
++      this.tax = tax;
++    }
++
++    public BigDecimal getShipping() {
++      return shipping;
++    }
++
++    public void setShipping(BigDecimal shipping) {
++      this.shipping = shipping;
++    }
++
++    public BigDecimal getTotal() {
++      return total;
++    }
++
++    public void setTotal(BigDecimal total) {
++      this.total = total;
++    }
++
++    public String getCurrency() {
++      return currency;
++    }
++
++    public void setCurrency(String currency) {
++      this.currency = currency;
++    }
++
++    public List<ItemPayload> getItems() {
++      return items;
++    }
++
++    public void setItems(List<ItemPayload> items) {
++      this.items = items;
++    }
++
++    public List<DiscountPayload> getDiscounts() {
++      return discounts;
++    }
++
++    public void setDiscounts(List<DiscountPayload> discounts) {
++      this.discounts = discounts;
++    }
++  }
++
++  /**
++   * Response payload returned to API consumers.
++   */
++  @Schema(description = "Response envelope for shopping cart operations")
++  public record Response(
++      UUID id,
++      UUID userId,
++      BigDecimal subtotal,
++      BigDecimal tax,
++      BigDecimal shipping,
++      BigDecimal total,
++      String currency,
++      Instant createdAt,
++      Instant updatedAt,
++      List<Item> items,
++      List<Discount> discounts
++  ) {
++  }
++
++  /**
++   * Representation of a cart line item in API responses.
++   */
++  public record Item(
++      UUID id,
++      String productId,
++      String name,
++      int quantity,
++      BigDecimal unitPrice,
++      BigDecimal totalPrice,
++      String currency
++  ) {
++  }
++
++  /**
++   * Representation of a discount entry in API responses.
++   */
++  public record Discount(
++      UUID id,
++      String code,
++      BigDecimal amount
++  ) {
++  }
++
++  /**
++   * Payload definition for create/update item arrays.
++   */
++  public static final class ItemPayload {
++
++    @NotBlank
++    @Size(max = 64)
++    private String productId;
++
++    @NotBlank
++    @Size(max = 255)
++    private String name;
++
++    @NotNull
++    @Positive
++    private Integer quantity;
++
++    @NotNull
++    @PositiveOrZero
++    private BigDecimal unitPrice;
++
++    @PositiveOrZero
++    private BigDecimal totalPrice;
++
++    @NotBlank
++    @Size(min = 3, max = 3)
++    @Pattern(regexp = "^[A-Z]{3}$")
++    private String currency;
++
++    public String getProductId() {
++      return productId;
++    }
++
++    public void setProductId(String productId) {
++      this.productId = productId;
++    }
++
++    public String getName() {
++      return name;
++    }
++
++    public void setName(String name) {
++      this.name = name;
++    }
++
++    public Integer getQuantity() {
++      return quantity;
++    }
++
++    public void setQuantity(Integer quantity) {
++      this.quantity = quantity;
++    }
++
++    public BigDecimal getUnitPrice() {
++      return unitPrice;
++    }
++
++    public void setUnitPrice(BigDecimal unitPrice) {
++      this.unitPrice = unitPrice;
++    }
++
++    public BigDecimal getTotalPrice() {
++      return totalPrice;
++    }
++
++    public void setTotalPrice(BigDecimal totalPrice) {
++      this.totalPrice = totalPrice;
++    }
++
++    public String getCurrency() {
++      return currency;
++    }
++
++    public void setCurrency(String currency) {
++      this.currency = currency;
++    }
++  }
++
++  /**
++   * Payload definition for create/update discount arrays.
++   */
++  public static final class DiscountPayload {
++
++    @NotBlank
++    @Size(max = 64)
++    private String code;
++
++    @NotNull
++    @PositiveOrZero
++    private BigDecimal amount;
++
++    public String getCode() {
++      return code;
++    }
++
++    public void setCode(String code) {
++      this.code = code;
++    }
++
++    public BigDecimal getAmount() {
++      return amount;
++    }
++
++    public void setAmount(BigDecimal amount) {
++      this.amount = amount;
++    }
++  }
++}
+diff --git a/src/main/java/com/bobwares/shoppingcart/web/RestExceptionHandler.java b/src/main/java/com/bobwares/shoppingcart/web/RestExceptionHandler.java
+new file mode 100644
+index 0000000..b4dbd78
+--- /dev/null
++++ b/src/main/java/com/bobwares/shoppingcart/web/RestExceptionHandler.java
+@@ -0,0 +1,91 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart.web
++ * File: RestExceptionHandler.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: RestExceptionHandler
++ * Description: Translates common exceptions into structured HTTP error responses for the REST API.
++ */
++package com.bobwares.shoppingcart.web;
++
++import jakarta.persistence.EntityNotFoundException;
++import jakarta.validation.ConstraintViolation;
++import jakarta.validation.ConstraintViolationException;
++import java.time.Instant;
++import java.util.HashMap;
++import java.util.Map;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.validation.FieldError;
++import org.springframework.web.bind.MethodArgumentNotValidException;
++import org.springframework.web.bind.annotation.ExceptionHandler;
++import org.springframework.web.bind.annotation.RestControllerAdvice;
++
++/**
++ * Handles validation and domain exceptions, ensuring consistent API error payloads.
++ */
++@RestControllerAdvice
++public class RestExceptionHandler {
++
++  /**
++   * Handles cases where a requested entity cannot be located.
++   *
++   * @param ex exception thrown by service layer
++   * @return 404 response payload
++   */
++  @ExceptionHandler(EntityNotFoundException.class)
++  public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
++    return ResponseEntity.status(HttpStatus.NOT_FOUND)
++        .body(new ErrorResponse(ex.getMessage(), Map.of(), Instant.now()));
++  }
++
++  /**
++   * Handles invalid arguments, typically resulting from domain constraint violations.
++   *
++   * @param ex exception thrown when user action conflicts with invariants
++   * @return 409 response payload
++   */
++  @ExceptionHandler(IllegalArgumentException.class)
++  public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
++    return ResponseEntity.status(HttpStatus.CONFLICT)
++        .body(new ErrorResponse(ex.getMessage(), Map.of(), Instant.now()));
++  }
++
++  /**
++   * Handles bean validation errors originating from controller method parameters.
++   *
++   * @param ex exception containing validation failures
++   * @return 422 response payload with detailed field errors
++   */
++  @ExceptionHandler(MethodArgumentNotValidException.class)
++  public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
++    Map<String, String> errors = new HashMap<>();
++    for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
++      errors.put(fieldError.getField(), fieldError.getDefaultMessage());
++    }
++    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
++        .body(new ErrorResponse("Validation failed", errors, Instant.now()));
++  }
++
++  /**
++   * Handles validation errors thrown outside of method argument binding, such as service-level validations.
++   *
++   * @param ex constraint violation exception
++   * @return 422 response payload with violation details
++   */
++  @ExceptionHandler(ConstraintViolationException.class)
++  public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
++    Map<String, String> errors = new HashMap<>();
++    for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
++      errors.put(violation.getPropertyPath().toString(), violation.getMessage());
++    }
++    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
++        .body(new ErrorResponse("Validation failed", errors, Instant.now()));
++  }
++
++  private record ErrorResponse(String message, Map<String, String> errors, Instant timestamp) {
++  }
++}
+diff --git a/src/main/resources/application.yml b/src/main/resources/application.yml
+index 7097e1f..acfcd85 100644
+--- a/src/main/resources/application.yml
++++ b/src/main/resources/application.yml
+@@ -12,6 +12,7 @@ spring:
+     open-in-view: false
+     properties:
+       hibernate:
++        default_schema: ${DATABASE_SCHEMA:shopping_cart}
+         format_sql: true
+         jdbc.time_zone: UTC
+   liquibase:
+diff --git a/src/main/resources/db/changelog/db.changelog-master.yml b/src/main/resources/db/changelog/db.changelog-master.yml
+index 686e833..ff3d65d 100644
+--- a/src/main/resources/db/changelog/db.changelog-master.yml
++++ b/src/main/resources/db/changelog/db.changelog-master.yml
+@@ -1,3 +1,14 @@
++# /**
++#  * App: Shopping Cart API
++#  * Package: db.changelog
++#  * File: db.changelog-master.yml
++#  * Version: 0.2.0
++#  * Turns: 1, 2
++#  * Author: gpt-5-codex
++#  * Date: 2025-10-03T00:25:40Z
++#  * Exports: Liquibase changelog
++#  * Description: Registers database change sets including shopping cart schema migration.
++#  */
+ databaseChangeLog:
+   - changeSet:
+       id: 0001-initial-placeholder
+@@ -6,3 +17,15 @@ databaseChangeLog:
+       changes:
+         - tagDatabase:
+             tag: initial-placeholder
++  - changeSet:
++      id: 0002-shopping-cart-tables
++      author: gpt-5-codex
++      comment: "Apply normalized shopping cart schema."
++      changes:
++        - sqlFile:
++            path: db/migrations/01_shopping_cart_tables.sql
++            encoding: utf8
++            relativeToChangelogFile: false
++            endDelimiter: ;
++            splitStatements: true
++            stripComments: false
+diff --git a/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java b/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
+index 03a7bf1..0ba6b19 100644
+--- a/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
++++ b/src/test/java/com/bobwares/shoppingcart/ApplicationSmokeTest.java
+@@ -2,10 +2,10 @@
+  * App: Shopping Cart API
+  * Package: com.bobwares.shoppingcart
+  * File: ApplicationSmokeTest.java
+- * Version: 0.1.0
+- * Turns: 1
++ * Version: 0.2.0
++ * Turns: 1, 2
+  * Author: gpt-5-codex
+- * Date: 2025-10-02T23:02:16Z
++ * Date: 2025-10-03T00:34:56Z
+  * Exports: ApplicationSmokeTest
+  * Description: Verifies that the Spring Boot application context loads successfully.
+  *              Method contextLoads: Triggers the default Spring Boot context startup for validation.
+@@ -18,7 +18,14 @@ import org.springframework.boot.test.context.SpringBootTest;
+ /**
+  * Smoke test ensuring the application context loads without throwing exceptions.
+  */
+-@SpringBootTest
++@SpringBootTest(properties = {
++    "spring.liquibase.enabled=false",
++    "spring.datasource.url=jdbc:h2:mem:shopping_cart_smoke;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH",
++    "spring.datasource.driver-class-name=org.h2.Driver",
++    "spring.datasource.username=sa",
++    "spring.datasource.password=",
++    "spring.jpa.hibernate.ddl-auto=none"
++})
+ class ApplicationSmokeTest {
+ 
+   /**
+diff --git a/src/test/java/com/bobwares/shoppingcart/ShoppingCartServiceTests.java b/src/test/java/com/bobwares/shoppingcart/ShoppingCartServiceTests.java
+new file mode 100644
+index 0000000..68648ec
+--- /dev/null
++++ b/src/test/java/com/bobwares/shoppingcart/ShoppingCartServiceTests.java
+@@ -0,0 +1,159 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart
++ * File: ShoppingCartServiceTests.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartServiceTests
++ * Description: Unit tests covering ShoppingCartService behavior and validation scenarios.
++ */
++package com.bobwares.shoppingcart;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.Mockito.doNothing;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
++
++import com.bobwares.shoppingcart.api.ShoppingCartDto;
++import java.math.BigDecimal;
++import java.util.List;
++import java.util.Optional;
++import java.util.UUID;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.mockito.ArgumentCaptor;
++import org.mockito.Mock;
++import org.mockito.junit.jupiter.MockitoExtension;
++
++/**
++ * Unit tests for {@link ShoppingCartService} using Mockito mocks.
++ */
++@ExtendWith(MockitoExtension.class)
++class ShoppingCartServiceTests {
++
++  @Mock
++  private ShoppingCartRepository shoppingCartRepository;
++
++  private ShoppingCartService shoppingCartService;
++
++  @BeforeEach
++  void setUp() {
++    shoppingCartService = new ShoppingCartService(shoppingCartRepository);
++  }
++
++  @Test
++  void create_shouldPersistNewCart() {
++    ShoppingCartDto.CreateRequest request = new ShoppingCartDto.CreateRequest();
++    request.setUserId(UUID.randomUUID());
++    request.setSubtotal(BigDecimal.valueOf(100));
++    request.setTax(BigDecimal.TEN);
++    request.setShipping(BigDecimal.valueOf(5));
++    request.setTotal(BigDecimal.valueOf(115));
++    request.setCurrency("usd");
++
++    ShoppingCartDto.ItemPayload item = new ShoppingCartDto.ItemPayload();
++    item.setProductId("SKU-1");
++    item.setName("Keyboard");
++    item.setQuantity(1);
++    item.setUnitPrice(BigDecimal.valueOf(100));
++    item.setCurrency("usd");
++    request.setItems(List.of(item));
++
++    request.setDiscounts(List.of());
++
++    when(shoppingCartRepository.existsByUserId(request.getUserId())).thenReturn(false);
++    when(shoppingCartRepository.save(any(ShoppingCart.class)))
++        .thenAnswer(invocation -> invocation.getArgument(0));
++
++    ShoppingCartDto.Response response = shoppingCartService.create(request);
++
++    assertThat(response.id()).isNotNull();
++    assertThat(response.currency()).isEqualTo("USD");
++    assertThat(response.items()).hasSize(1);
++
++    ArgumentCaptor<ShoppingCart> captor = ArgumentCaptor.forClass(ShoppingCart.class);
++    verify(shoppingCartRepository).save(captor.capture());
++    ShoppingCart persisted = captor.getValue();
++    assertThat(persisted.getUserId()).isEqualTo(request.getUserId());
++    assertThat(persisted.getItems()).hasSize(1);
++  }
++
++  @Test
++  void create_shouldRejectDuplicateUser() {
++    ShoppingCartDto.CreateRequest request = new ShoppingCartDto.CreateRequest();
++    request.setUserId(UUID.randomUUID());
++    request.setSubtotal(BigDecimal.ONE);
++    request.setTotal(BigDecimal.ONE);
++    request.setCurrency("USD");
++    ShoppingCartDto.ItemPayload item = new ShoppingCartDto.ItemPayload();
++    item.setProductId("SKU");
++    item.setName("Name");
++    item.setQuantity(1);
++    item.setUnitPrice(BigDecimal.ONE);
++    item.setCurrency("USD");
++    request.setItems(List.of(item));
++
++    when(shoppingCartRepository.existsByUserId(request.getUserId())).thenReturn(true);
++
++    assertThatThrownBy(() -> shoppingCartService.create(request))
++        .isInstanceOf(IllegalArgumentException.class)
++        .hasMessageContaining("User already has an active shopping cart");
++  }
++
++  @Test
++  void get_shouldReturnCart() {
++    UUID cartId = UUID.randomUUID();
++    ShoppingCart cart = buildCart(cartId);
++    when(shoppingCartRepository.findById(cartId)).thenReturn(Optional.of(cart));
++
++    ShoppingCartDto.Response response = shoppingCartService.get(cartId);
++
++    assertThat(response.id()).isEqualTo(cartId);
++    assertThat(response.items()).hasSize(1);
++    assertThat(response.discounts()).hasSize(1);
++  }
++
++  @Test
++  void delete_shouldRemoveCart() {
++    UUID cartId = UUID.randomUUID();
++    ShoppingCart cart = buildCart(cartId);
++    when(shoppingCartRepository.findById(cartId)).thenReturn(Optional.of(cart));
++    doNothing().when(shoppingCartRepository).delete(cart);
++
++    shoppingCartService.delete(cartId);
++
++    verify(shoppingCartRepository).delete(cart);
++  }
++
++  private ShoppingCart buildCart(UUID id) {
++    ShoppingCart cart = new ShoppingCart();
++    cart.setId(id);
++    cart.setUserId(UUID.randomUUID());
++    cart.setSubtotal(BigDecimal.valueOf(100));
++    cart.setTax(BigDecimal.TEN);
++    cart.setShipping(BigDecimal.ZERO);
++    cart.setTotal(BigDecimal.valueOf(110));
++    cart.setCurrency("USD");
++
++    ShoppingCartItem item = new ShoppingCartItem();
++    item.setProductId("SKU-1");
++    item.setName("Keyboard");
++    item.setQuantity(1);
++    item.setUnitPrice(BigDecimal.valueOf(100));
++    item.setCurrency("USD");
++    item.setTotalPrice(BigDecimal.valueOf(100));
++    cart.replaceItems(List.of(item));
++
++    ShoppingCartDiscount discount = new ShoppingCartDiscount();
++    discount.setCode("SAVE10");
++    discount.setAmount(BigDecimal.TEN);
++    cart.replaceDiscounts(List.of(discount));
++
++    return cart;
++  }
++}
+diff --git a/src/test/java/com/bobwares/shoppingcart/api/ShoppingCartControllerIT.java b/src/test/java/com/bobwares/shoppingcart/api/ShoppingCartControllerIT.java
+new file mode 100644
+index 0000000..cf12359
+--- /dev/null
++++ b/src/test/java/com/bobwares/shoppingcart/api/ShoppingCartControllerIT.java
+@@ -0,0 +1,137 @@
++/**
++ * App: Shopping Cart API
++ * Package: com.bobwares.shoppingcart.api
++ * File: ShoppingCartControllerIT.java
++ * Version: 0.1.0
++ * Turns: 2
++ * Author: gpt-5-codex
++ * Date: 2025-10-03T00:25:40Z
++ * Exports: ShoppingCartControllerIT
++ * Description: Integration tests exercising shopping cart CRUD endpoints against PostgreSQL via Testcontainers.
++ */
++package com.bobwares.shoppingcart.api;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.hamcrest.Matchers.notNullValue;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
++import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
++
++import com.fasterxml.jackson.databind.JsonNode;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import java.math.BigDecimal;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.http.MediaType;
++import org.springframework.test.context.DynamicPropertyRegistry;
++import org.springframework.test.context.DynamicPropertySource;
++import org.springframework.test.web.servlet.MockMvc;
++import org.springframework.test.web.servlet.MvcResult;
++import org.testcontainers.containers.PostgreSQLContainer;
++import org.testcontainers.junit.jupiter.Container;
++import org.testcontainers.junit.jupiter.Testcontainers;
++
++/**
++ * Integration tests for {@link ShoppingCartController} using Testcontainers-backed PostgreSQL.
++ */
++@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
++@AutoConfigureMockMvc
++@Testcontainers
++class ShoppingCartControllerIT {
++
++  @Container
++  private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16");
++
++  @Autowired
++  private MockMvc mockMvc;
++
++  @Autowired
++  private ObjectMapper objectMapper;
++
++  @DynamicPropertySource
++  static void registerProperties(DynamicPropertyRegistry registry) {
++    registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
++    registry.add("spring.datasource.username", POSTGRES::getUsername);
++    registry.add("spring.datasource.password", POSTGRES::getPassword);
++    registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
++    registry.add("spring.jpa.properties.hibernate.default_schema", () -> "shopping_cart");
++    registry.add("spring.datasource.hikari.maximum-pool-size", () -> "2");
++  }
++
++  @Test
++  void shouldExecuteCrudFlow() throws Exception {
++    UUID userId = UUID.randomUUID();
++    Map<String, Object> createPayload = Map.of(
++        "userId", userId,
++        "subtotal", BigDecimal.valueOf(120.00),
++        "tax", BigDecimal.valueOf(10.00),
++        "shipping", BigDecimal.valueOf(5.00),
++        "total", BigDecimal.valueOf(135.00),
++        "currency", "USD",
++        "items", List.of(Map.of(
++            "productId", "SKU-100",
++            "name", "Mechanical Keyboard",
++            "quantity", 1,
++            "unitPrice", BigDecimal.valueOf(120.00),
++            "totalPrice", BigDecimal.valueOf(120.00),
++            "currency", "USD"
++        )),
++        "discounts", List.of(Map.of(
++            "code", "SAVE5",
++            "amount", BigDecimal.valueOf(5.00)
++        ))
++    );
++
++    MvcResult createResult = mockMvc.perform(post("/api/shopping-carts")
++            .contentType(MediaType.APPLICATION_JSON)
++            .content(objectMapper.writeValueAsString(createPayload)))
++        .andExpect(status().isCreated())
++        .andExpect(jsonPath("$.id", notNullValue()))
++        .andReturn();
++
++    JsonNode createNode = objectMapper.readTree(createResult.getResponse().getContentAsString());
++    String cartId = createNode.get("id").asText();
++    assertThat(cartId).isNotBlank();
++
++    mockMvc.perform(get("/api/shopping-carts/{id}", cartId))
++        .andExpect(status().isOk())
++        .andExpect(jsonPath("$.userId").value(userId.toString()));
++
++    Map<String, Object> updatePayload = Map.of(
++        "subtotal", BigDecimal.valueOf(110.00),
++        "tax", BigDecimal.valueOf(8.00),
++        "shipping", BigDecimal.valueOf(4.00),
++        "total", BigDecimal.valueOf(122.00),
++        "currency", "USD",
++        "items", List.of(Map.of(
++            "productId", "SKU-101",
++            "name", "Wireless Mouse",
++            "quantity", 2,
++            "unitPrice", BigDecimal.valueOf(40.00),
++            "totalPrice", BigDecimal.valueOf(80.00),
++            "currency", "USD"
++        )),
++        "discounts", List.of()
++    );
++
++    mockMvc.perform(put("/api/shopping-carts/{id}", cartId)
++            .contentType(MediaType.APPLICATION_JSON)
++            .content(objectMapper.writeValueAsString(updatePayload)))
++        .andExpect(status().isOk())
++        .andExpect(jsonPath("$.items[0].productId").value("SKU-101"));
++
++    mockMvc.perform(delete("/api/shopping-carts/{id}", cartId))
++        .andExpect(status().isNoContent());
++
++    mockMvc.perform(get("/api/shopping-carts/{id}", cartId))
++        .andExpect(status().isNotFound());
++  }
++}

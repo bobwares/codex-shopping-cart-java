@@ -1,0 +1,85 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: e2e
+#  * File: ShoppingCart.http
+#  * Version: 0.1.1
+#  * Turns: 3
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:40:00Z
+#  * Exports: HTTP CRUD scenario for ShoppingCart API
+#  * Description: Executes create, read, update, delete, and not-found flows for shopping carts.
+#  */
+
+### Environment
+@host = http://localhost:{{APP_PORT}}
+@APP_PORT = 8080
+@APP_NAME = Shopping Cart API
+
+### Create shopping cart
+POST {{host}}/api/shopping-carts
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "11111111-1111-1111-1111-111111111111",
+  "subtotal": 125.00,
+  "tax": 10.00,
+  "shipping": 5.00,
+  "total": 140.00,
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "SKU-200",
+      "name": "Bluetooth Headphones",
+      "quantity": 1,
+      "unitPrice": 125.00,
+      "totalPrice": 125.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": [
+    {
+      "code": "SAVE5",
+      "amount": 5.00
+    }
+  ]
+}
+
+### Store created cart identifier
+@cartId = {{response.body.$.id}}
+
+### Get shopping cart
+GET {{host}}/api/shopping-carts/{{cartId}}
+Accept: application/json
+
+### Update shopping cart
+PUT {{host}}/api/shopping-carts/{{cartId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "subtotal": 110.00,
+  "tax": 8.00,
+  "shipping": 4.00,
+  "total": 122.00,
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "SKU-201",
+      "name": "Wireless Mouse",
+      "quantity": 2,
+      "unitPrice": 40.00,
+      "totalPrice": 80.00,
+      "currency": "USD"
+    }
+  ],
+  "discounts": []
+}
+
+### Delete shopping cart
+DELETE {{host}}/api/shopping-carts/{{cartId}}
+Accept: application/json
+
+### Verify deletion
+GET {{host}}/api/shopping-carts/{{cartId}}
+Accept: application/json

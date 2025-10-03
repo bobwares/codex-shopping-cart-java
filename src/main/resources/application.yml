@@ -1,3 +1,15 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: com.bobwares.shoppingcart.config
+#  * File: application.yml
+#  * Version: 0.2.0
+#  * Turns: 1, 2
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:40:07Z
+#  * Exports: Spring Boot application configuration
+#  * Description: Configures application name, datasource, JPA, Liquibase, management, and Springdoc defaults.
+#  */
+
 spring:
   application:
     name: ${APP_NAME:shopping-cart-api}
@@ -12,6 +24,7 @@ spring:
     open-in-view: false
     properties:
       hibernate:
+        default_schema: ${DATABASE_SCHEMA:shopping_cart}
         format_sql: true
         jdbc.time_zone: UTC
   liquibase:

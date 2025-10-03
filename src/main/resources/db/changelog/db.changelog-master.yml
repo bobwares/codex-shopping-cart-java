@@ -1,3 +1,14 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: db.changelog
+#  * File: db.changelog-master.yml
+#  * Version: 0.2.0
+#  * Turns: 1, 2
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:25:40Z
+#  * Exports: Liquibase changelog
+#  * Description: Registers database change sets including shopping cart schema migration.
+#  */
 databaseChangeLog:
   - changeSet:
       id: 0001-initial-placeholder
@@ -6,3 +17,15 @@ databaseChangeLog:
       changes:
         - tagDatabase:
             tag: initial-placeholder
+  - changeSet:
+      id: 0002-shopping-cart-tables
+      author: gpt-5-codex
+      comment: "Apply normalized shopping cart schema."
+      changes:
+        - sqlFile:
+            path: db/migrations/01_shopping_cart_tables.sql
+            encoding: utf8
+            relativeToChangelogFile: false
+            endDelimiter: ;
+            splitStatements: true
+            stripComments: false

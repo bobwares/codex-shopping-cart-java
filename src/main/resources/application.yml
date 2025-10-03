@@ -20,7 +20,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+
     open-in-view: false
     properties:
       hibernate:
@@ -34,9 +34,10 @@ spring:
     allow-bean-definition-overriding: false
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /api/openapi.json
   swagger-ui:
-    path: /swagger-ui.html
+    path: /api/docs
+
 server:
   port: ${APP_PORT:8080}
 management:

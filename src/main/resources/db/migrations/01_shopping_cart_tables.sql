@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS shopping_cart (
     tax NUMERIC(12, 2) DEFAULT 0 CHECK (tax >= 0),
     shipping NUMERIC(12, 2) DEFAULT 0 CHECK (shipping >= 0),
     total NUMERIC(12, 2) NOT NULL CHECK (total >= 0),
-    currency CHAR(3) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id)

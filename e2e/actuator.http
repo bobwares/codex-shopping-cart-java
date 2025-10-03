@@ -1,3 +1,6 @@
+@APP_PORT=8080
+
+
 ### Health check
 GET http://localhost:{{APP_PORT}}/actuator/health
 Accept: application/json

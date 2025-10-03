@@ -1,0 +1,28 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: e2e
+#  * File: SwaggerDocs.http
+#  * Version: 0.1.0
+#  * Turns: 1
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:50:00Z
+#  * Exports: HTTP requests for OpenAPI/Swagger documentation endpoints
+#  * Description: Retrieves the machine-readable OpenAPI spec and the interactive Swagger UI page.
+#  */
+
+### Environment
+@host = http://localhost:{{APP_PORT}}
+@APP_PORT = 8080
+@APP_NAME = Shopping Cart API
+
+### Get machine-readable OpenAPI JSON
+GET {{host}}/apidocs/openapi.json
+Accept: application/json
+
+### Get machine-readable OpenAPI YAML (if enabled)
+GET {{host}}/api/openapi.yaml
+Accept: application/x-yaml
+
+### Get Swagger UI page
+GET {{host}}/api-docs/docs
+Accept: text/html

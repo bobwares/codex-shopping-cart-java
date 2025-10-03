@@ -2,15 +2,18 @@
 #  * App: Shopping Cart API
 #  * Package: e2e
 #  * File: ShoppingCart.http
-#  * Version: 0.1.0
-#  * Turns: 2
+#  * Version: 0.1.1
+#  * Turns: 3
 #  * Author: gpt-5-codex
-#  * Date: 2025-10-03T00:25:40Z
+#  * Date: 2025-10-03T00:40:00Z
 #  * Exports: HTTP CRUD scenario for ShoppingCart API
 #  * Description: Executes create, read, update, delete, and not-found flows for shopping carts.
 #  */
-@host = http://localhost:{{APP_PORT:8080}}
-@cartId = {{cartId}}
+
+### Environment
+@host = http://localhost:{{APP_PORT}}
+@APP_PORT = 8080
+@APP_NAME = Shopping Cart API
 
 ### Create shopping cart
 POST {{host}}/api/shopping-carts

@@ -1,0 +1,37 @@
+# /**
+#  * App: Shopping Cart API
+#  * Package: infrastructure
+#  * File: docker-compose.yml
+#  * Version: 0.1.0
+#  * Turns: 2
+#  * Author: gpt-5-codex
+#  * Date: 2025-10-03T00:25:40Z
+#  * Exports: postgres service definition
+#  * Description: Defines a PostgreSQL 16 service for local development with health checks and volume persistence.
+#  */
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-shopping
+    restart: unless-stopped
+    ports:
+      - "${DATABASE_PORT}:5432"
+    environment:
+      POSTGRES_USER: "${DATABASE_USERNAME}"
+      POSTGRES_PASSWORD: "${DATABASE_PASSWORD}"
+      POSTGRES_DB: "${DATABASE_NAME}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    env_file:
+      - .env
+
+volumes:
+  pgdata:
